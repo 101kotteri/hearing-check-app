@@ -268,6 +268,10 @@ export class App {
       t += pulseOnSec + pulseGapSec;
     }
     const panner = ctx.createStereoPanner();
+    // Explicit stereo output, rather than trusting the destination's default
+    // channel count/interpretation, so a hard pan can't silently downmix.
+    panner.channelCount = 2;
+    panner.channelCountMode = 'explicit';
     panner.pan.value = this.state.hearEar === 'right' ? 1 : -1;
     osc.connect(gain).connect(panner).connect(ctx.destination);
     osc.start(now);

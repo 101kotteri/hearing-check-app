@@ -61,9 +61,6 @@ export interface ViewModel {
   hearPlayingClass: string;
   hearCalPlayingClass: string;
   hearGraph: HearGraphData;
-  /** Print report always spans a fixed 63Hz–10kHz, regardless of on-screen axis
-   *  margin or how many frequencies were actually tested. */
-  hearPrintGraph: HearGraphData;
   hearRefLineY: number;
   hearDbTicks: DbTick[];
   hearIsPartial: boolean;
@@ -71,14 +68,10 @@ export interface ViewModel {
   hearReportNameDisplay: string;
 }
 
-// The on-screen graph keeps a little headroom past the highest test frequency
-// (10kHz) so its point marker isn't clipped by the panel's overflow:hidden edge.
-const HEAR_SCREEN_AXIS_MAX_FREQ = 12500;
-// The printed report is fixed to exactly this range, independent of the screen
-// margin above and independent of how many frequencies were actually measured.
-const HEAR_PRINT_AXIS_MIN_FREQ = 63;
-const HEAR_PRINT_AXIS_MAX_FREQ = 16000;
+// Shared by both the on-screen results graph and the printed report, fixed to
+// this exact range independent of how many frequencies were actually measured.
 const HEAR_AXIS_MIN_FREQ = 63;
+const HEAR_AXIS_MAX_FREQ = 16000;
 const HEAR_GRAPH_W = 860;
 const HEAR_GRAPH_H = 280;
 
@@ -149,13 +142,7 @@ export function computeViewModel(s: AppState): ViewModel {
     label: (db > 0 ? '+' : '') + db,
   }));
   const listeningScale = s.hearListeningType === 'listening' ? 0.5 : 1;
-  const hearGraph = buildHearGraphData(s.hearResults, listeningScale, HEAR_AXIS_MIN_FREQ, HEAR_SCREEN_AXIS_MAX_FREQ);
-  const hearPrintGraph = buildHearGraphData(
-    s.hearResults,
-    listeningScale,
-    HEAR_PRINT_AXIS_MIN_FREQ,
-    HEAR_PRINT_AXIS_MAX_FREQ
-  );
+  const hearGraph = buildHearGraphData(s.hearResults, listeningScale, HEAR_AXIS_MIN_FREQ, HEAR_AXIS_MAX_FREQ);
 
   const hearEarLabel = s.hearEar === 'right' ? '右' : '左';
   const hearCurrentFreq = HEARING_TEST_ORDER[s.hearFreqPos] || 0;
@@ -199,7 +186,6 @@ export function computeViewModel(s: AppState): ViewModel {
     hearPlayingClass: s.hearPlaying ? 'is-playing' : '',
     hearCalPlayingClass: s.hearCalPlaying ? 'is-playing' : '',
     hearGraph,
-    hearPrintGraph,
     hearRefLineY,
     hearDbTicks,
     hearIsPartial,

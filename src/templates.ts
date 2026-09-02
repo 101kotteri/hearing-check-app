@@ -216,15 +216,14 @@ function renderHearDone(vm: ViewModel): string {
     )
     .join('');
 
-  // Print report: a fixed 63Hz-10kHz axis (vm.hearPrintGraph), independent of the
-  // on-screen graph's wider axis margin and of how many frequencies were tested.
-  const printGridV = vm.hearPrintGraph.graphTicks
+  // Print report reuses the same 63Hz-16kHz graph data as the on-screen graph.
+  const printGridV = vm.hearGraph.graphTicks
     .map((t) => `<div style="position:absolute;left:${t.x}px;top:0;bottom:0;width:1px;background:#e0e0e0;"></div>`)
     .join('');
   const printGridH = vm.hearDbTicks
     .map((t) => `<div style="position:absolute;left:0;top:${t.y}px;width:100%;height:1px;background:#e0e0e0;"></div>`)
     .join('');
-  const printRightPoints = vm.hearPrintGraph.rightPoints
+  const printRightPoints = vm.hearGraph.rightPoints
     .map(
       (pt) => `
       <div style="position:absolute;left:${pt.x}px;top:${pt.y}px;width:11px;height:11px;border-radius:50%;border:2px solid #c0392b;background:#fff;transform:translate(-50%,-50%);"></div>
@@ -235,7 +234,7 @@ function renderHearDone(vm: ViewModel): string {
       }`
     )
     .join('');
-  const printLeftPoints = vm.hearPrintGraph.leftPoints
+  const printLeftPoints = vm.hearGraph.leftPoints
     .map(
       (pt) => `
       <div style="position:absolute;left:${pt.x}px;top:${pt.y}px;width:11px;height:11px;transform:translate(-50%,-50%) rotate(45deg);">
@@ -249,7 +248,7 @@ function renderHearDone(vm: ViewModel): string {
       }`
     )
     .join('');
-  const printAxisLabels = vm.hearPrintGraph.graphTicks
+  const printAxisLabels = vm.hearGraph.graphTicks
     .map(
       (t) =>
         `<div style="position:absolute;left:${t.x}px;transform:translateX(-50%);font-size:9px;color:#666;white-space:nowrap;">${t.label}</div>`
@@ -303,21 +302,23 @@ function renderHearDone(vm: ViewModel): string {
       <div>Name: ${escapeHtml(vm.hearReportNameDisplay)}</div>
       <div>測定日: ${vm.hearReportDate}</div>
     </div>
-    <div style="display:flex;">
-      <div style="width:40px;height:280px;position:relative;font-size:9px;color:#666;">${dbTicksLeftPrint}</div>
-      <div style="flex:1;height:280px;position:relative;border:1px solid #ccc;">
-        ${printGridV}
-        ${printGridH}
-        <div style="position:absolute;left:0;top:${vm.hearRefLineY}px;width:100%;height:1px;background:#999;"></div>
-        <svg width="860" height="280" viewBox="0 0 860 280" style="position:absolute;top:0;left:0;">
-          <path d="${vm.hearPrintGraph.rightPath}" stroke="#c0392b" stroke-width="2" fill="none"/>
-          <path d="${vm.hearPrintGraph.leftPath}" stroke="#2255aa" stroke-width="2" fill="none"/>
-        </svg>
-        ${printRightPoints}
-        ${printLeftPoints}
+    <div style="width:900px;">
+      <div style="display:flex;">
+        <div style="width:40px;height:280px;position:relative;font-size:9px;color:#666;">${dbTicksLeftPrint}</div>
+        <div style="width:860px;height:280px;position:relative;border:1px solid #ccc;overflow:hidden;">
+          ${printGridV}
+          ${printGridH}
+          <div style="position:absolute;left:0;top:${vm.hearRefLineY}px;width:100%;height:1px;background:#999;"></div>
+          <svg width="860" height="280" viewBox="0 0 860 280" style="position:absolute;top:0;left:0;">
+            <path d="${vm.hearGraph.rightPath}" stroke="#c0392b" stroke-width="2" fill="none"/>
+            <path d="${vm.hearGraph.leftPath}" stroke="#2255aa" stroke-width="2" fill="none"/>
+          </svg>
+          ${printRightPoints}
+          ${printLeftPoints}
+        </div>
       </div>
+      <div style="margin-left:40px;position:relative;height:14px;margin-top:6px;">${printAxisLabels}</div>
     </div>
-    <div style="margin-left:40px;position:relative;height:14px;margin-top:6px;">${printAxisLabels}</div>
     <div style="display:flex;gap:24px;font-size:11px;color:#333;margin-top:18px;">
       <div style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;border:2px solid #c0392b;display:inline-block;"></span>右耳</div>
       <div style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border:2px solid #2255aa;display:inline-block;transform:rotate(45deg);"></span>左耳</div>
