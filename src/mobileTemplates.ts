@@ -169,7 +169,7 @@ export function renderMobileMeasure(vm: ViewModel): string {
   </div>`;
 }
 
-const MOBILE_GRAPH_SCALE = 1.05;
+const MOBILE_GRAPH_SCALE = 1.3;
 const MOBILE_GRAPH_W = 900;
 // Matches the graph block's actual markup height (280 + 6 margin-top + 14 axis-
 // label row = 300). Re-measured via getBoundingClientRect: the rendered content
