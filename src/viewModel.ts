@@ -137,7 +137,9 @@ function buildHearGraphData(
 
 export function computeViewModel(s: AppState): ViewModel {
   const hearRefLineY = hearGraphY(0);
-  const hearDbTicks: DbTick[] = [20, 0, -20, -40, -60].map((db) => ({
+  const hearDbTickValues: number[] = [];
+  for (let db = HEARING_CEILING_DB; db >= HEARING_FLOOR_DB; db -= 10) hearDbTickValues.push(db);
+  const hearDbTicks: DbTick[] = hearDbTickValues.map((db) => ({
     y: hearGraphY(db),
     label: (db > 0 ? '+' : '') + db,
   }));
