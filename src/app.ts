@@ -31,7 +31,8 @@ import { computeViewModel } from './viewModel';
 
 type HearDirection = 'descend' | 'ascend';
 
-const OPENING_HOLD_MS = 3000;
+const OPENING_FRAME_FADE_IN_MS = 1500;
+const OPENING_HOLD_MS = 4500;
 const OPENING_ZOOM_MS = 600;
 const OPENING_REVEAL_MS = 400;
 const OPENING_ZOOM_SCALE = 2.4;
@@ -269,6 +270,19 @@ export class App {
     this.transitionOverlay.style.opacity = '0';
     void this.transitionOverlay.offsetHeight; // force reflow before re-enabling transitions
     this.transitionOverlay.style.transition = '';
+
+    // The screen opens on pure black (the body's own background), then the
+    // frame itself fades in first — before the logo/title animation, whose
+    // CSS animation-delay values are offset by this same duration so they
+    // wait for it (see style.css's mobile-opening-* rules).
+    const shellForFadeIn = this.rootEl.querySelector<HTMLElement>('#app-shell');
+    if (shellForFadeIn) {
+      shellForFadeIn.style.transition = 'none';
+      shellForFadeIn.style.opacity = '0';
+      void shellForFadeIn.offsetHeight; // force reflow before re-enabling transitions
+      shellForFadeIn.style.transition = `opacity ${OPENING_FRAME_FADE_IN_MS}ms ease`;
+      shellForFadeIn.style.opacity = '1';
+    }
 
     this.openingTimer1 = window.setTimeout(() => {
       // Zoom the whole framed shell (casing + logo/title together), not just

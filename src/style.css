@@ -104,11 +104,11 @@ button {
   }
 }
 .mobile-opening-logo {
-  animation: mobile-opening-logo-spin-in 0.6s ease-out 0.3s both;
+  animation: mobile-opening-logo-spin-in 0.6s ease-out 1.8s both;
   transform-style: preserve-3d;
 }
 .mobile-opening-text {
-  animation: mobile-opening-text-fade-in 0.3s ease-out 0.9s both;
+  animation: mobile-opening-text-fade-in 0.3s ease-out 2.4s both;
 }
 
 #transition-overlay {
