@@ -38,9 +38,9 @@ export function renderMobileIntro(): string {
   return `
   <div style="position:relative;width:100%;height:100%;display:flex;flex-direction:column;">
     ${renderMobileTopBar()}
-    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:36px;max-width:1180px;margin:0 auto;text-align:center;padding:0 40px;">
-      <div style="font-size:44px;font-weight:700;letter-spacing:1px;">簡易聴力チェック</div>
-      <div style="font-family:var(--font-mono);font-size:24px;color:var(--text-dim);line-height:2;text-align:left;">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;max-width:1180px;margin:0 auto;text-align:center;padding:0 40px;">
+      <div style="font-size:26px;font-weight:700;letter-spacing:1px;">簡易聴力チェック</div>
+      <div style="font-family:var(--font-mono);font-size:22px;color:var(--text-dim);line-height:1.75;text-align:left;">
         ・ヘッドホンまたはイヤホンを装着してください<br/>
         ・右耳→左耳の順に、低い音から高い音まで自動で測定します<br/>
         ・音が聞こえたら「聞こえたら押す」ボタンを押してください<br/>
@@ -48,8 +48,8 @@ export function renderMobileIntro(): string {
         ・所要時間の目安は3〜5分です<br/>
         ・体調に異変を感じたら、いつでも「緊急停止」で中断できます
       </div>
-      <div style="font-family:var(--font-mono);font-size:20px;color:var(--text-dim);line-height:1.8;">※使用機器の音量設定に依存する相対的な簡易チェックです。医療機関の聴力検査の代わりにはなりません。</div>
-      <button data-action="goToHearSetup" class="eg-btn" style="background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:24px;padding:24px 72px;cursor:pointer;border-radius:4px;">はじめる</button>
+      <div style="font-family:var(--font-mono);font-size:18px;color:var(--text-dim);line-height:1.6;">※使用機器の音量設定に依存する相対的な簡易チェックです。医療機関の聴力検査の代わりにはなりません。</div>
+      <button data-action="goToHearSetup" class="eg-btn" style="background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:22px;padding:16px 64px;cursor:pointer;border-radius:4px;">はじめる</button>
     </div>
   </div>`;
 }

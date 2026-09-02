@@ -271,11 +271,15 @@ export class App {
     this.transitionOverlay.style.transition = '';
 
     this.openingTimer1 = window.setTimeout(() => {
-      const content = this.screenRoot.querySelector<HTMLElement>('.mobile-opening-content');
-      if (content) {
-        content.style.transition = `transform ${OPENING_ZOOM_MS}ms ease-in, opacity ${OPENING_ZOOM_MS}ms ease-in`;
-        content.style.transform = `scale(${OPENING_ZOOM_SCALE})`;
-        content.style.opacity = '0';
+      // Zoom the whole framed shell (casing + logo/title together), not just
+      // the inner content, per explicit direction: the frame should fly
+      // outward with everything else, not sit still while only the content
+      // zooms past it.
+      const shell = this.rootEl.querySelector<HTMLElement>('#app-shell');
+      if (shell) {
+        shell.style.transition = `transform ${OPENING_ZOOM_MS}ms ease-in, opacity ${OPENING_ZOOM_MS}ms ease-in`;
+        shell.style.transform = `scale(${OPENING_ZOOM_SCALE})`;
+        shell.style.opacity = '0';
       }
       this.transitionOverlay.style.transition = `opacity ${OPENING_ZOOM_MS}ms ease-in`;
       this.transitionOverlay.style.opacity = '1';

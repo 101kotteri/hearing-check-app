@@ -22,7 +22,7 @@ export function renderChassis(): string {
     .join('');
 
   return `
-  <div style="width:1504px;height:838px;background:linear-gradient(150deg, var(--frame-1) 0%, var(--frame-2) 65%, oklch(0.27 0.06 270) 100%);position:relative;border-radius:26px;box-shadow:0 24px 70px rgba(0,0,0,0.5), inset 0 2px 0 oklch(0.75 0.03 260 / 0.3), inset 0 -8px 16px rgba(0,0,0,0.42), inset 8px 0 16px rgba(0,0,0,0.16), inset -8px 0 16px rgba(0,0,0,0.16);font-family:var(--font-display);">
+  <div id="app-shell" style="width:1504px;height:838px;background:linear-gradient(150deg, var(--frame-1) 0%, var(--frame-2) 65%, oklch(0.27 0.06 270) 100%);position:relative;border-radius:26px;box-shadow:0 24px 70px rgba(0,0,0,0.5), inset 0 2px 0 oklch(0.75 0.03 260 / 0.3), inset 0 -8px 16px rgba(0,0,0,0.42), inset 8px 0 16px rgba(0,0,0,0.16), inset -8px 0 16px rgba(0,0,0,0.16);font-family:var(--font-display);">
     <div style="position:absolute;inset:0;background:radial-gradient(ellipse 700px 400px at 18% 0%, oklch(0.5 0.03 240 / 0.22), transparent 60%);border-radius:26px;pointer-events:none;"></div>
     <div style="position:absolute;inset:0;background:radial-gradient(ellipse 480px 260px at 93% 4%, oklch(0.75 0.02 260 / 0.11), transparent 55%);border-radius:26px;pointer-events:none;"></div>
     <div style="position:absolute;inset:0;background:radial-gradient(ellipse 420px 220px at 5% 97%, oklch(0.68 0.02 260 / 0.08), transparent 55%);border-radius:26px;pointer-events:none;"></div>
