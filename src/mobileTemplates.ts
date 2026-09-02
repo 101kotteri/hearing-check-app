@@ -51,11 +51,11 @@ function renderMobileBackButton(action: string, label: string): string {
 // inside that bezel can't land at the same screen position as the
 // explanation screen's. Placing an identical button outside the frame,
 // transformed the same way the frame-less canvas is, does. See app.ts.
-// Left padding is smaller than the in-frame top bar's 48px — the decorative
-// frame's own left edge sits closer to this button than the frame-less
-// canvas's edge does, so the full 48px let the button overlap the frame on
-// some viewport sizes; a little less padding pulls it further left, clear
-// of the frame, per explicit report.
+// Uses the same 24px left padding as every other screen's top bar (see
+// renderMobileTopBar/renderMobileDone) so all back/EXIT buttons share one
+// common screen position — originally 48px here, but that let the button
+// overlap the decorative frame on some viewport sizes, so the padding was
+// pulled in everywhere at once rather than leaving this one out of step.
 export function renderMobileBackButtonOverlay(action: string, label: string): string {
   return `
   <div style="height:${MOBILE_TOPBAR_H}px;box-sizing:border-box;display:flex;align-items:center;padding:0 48px 0 24px;">
@@ -76,7 +76,7 @@ function renderMobileTopBar(vm?: ViewModel): string {
   const backAction = 'goToGate';
   const backLabel = 'EXIT';
   return `
-  <div style="height:${MOBILE_TOPBAR_H}px;flex-shrink:0;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;padding:0 48px;">
+  <div style="height:${MOBILE_TOPBAR_H}px;flex-shrink:0;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;padding:0 48px 0 24px;">
     ${renderMobileBackButton(backAction, backLabel)}
   </div>`;
 }
@@ -216,7 +216,7 @@ const MOBILE_GRAPH_H = 300;
 export function renderMobileDone(vm: ViewModel): string {
   return `
   <div style="position:relative;width:100%;height:100%;display:flex;flex-direction:column;">
-    <div style="position:relative;height:${MOBILE_TOPBAR_H}px;flex-shrink:0;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;padding:0 48px;">
+    <div style="position:relative;height:${MOBILE_TOPBAR_H}px;flex-shrink:0;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;padding:0 48px 0 24px;">
       ${renderMobileBackButton('goToGate', 'EXIT')}
       <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:26px;font-weight:700;letter-spacing:1px;">測定結果</div>
       ${
