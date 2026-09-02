@@ -171,12 +171,11 @@ export function renderMobileMeasure(vm: ViewModel): string {
 
 const MOBILE_GRAPH_SCALE = 1.05;
 const MOBILE_GRAPH_W = 900;
-// Measured empirically (not just summed from the markup's declared 280+6+14=300):
-// the axis-tick-label row's actual rendered extent runs past its own 14px box,
-// so the true content height is bigger than the naive sum. Verified via
-// getBoundingClientRect that 380 fully contains the rendered content with room
-// to spare — don't shrink this back to 300 without re-measuring.
-const MOBILE_GRAPH_H = 380;
+// Matches the graph block's actual markup height (280 + 6 margin-top + 14 axis-
+// label row = 300). Re-measured via getBoundingClientRect: the rendered content
+// box is 300px almost exactly (a prior 380 here was carrying a large unexplained
+// buffer that just showed up as dead space below the axis labels).
+const MOBILE_GRAPH_H = 300;
 
 export function renderMobileDone(vm: ViewModel): string {
   return `
