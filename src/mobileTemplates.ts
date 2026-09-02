@@ -9,6 +9,8 @@
 import { breatheDelayStyle, escapeHtml } from './templates';
 import type { ViewModel } from './viewModel';
 
+const MOBILE_TOPBAR_H = 90;
+
 // 2x the PC gate screen's icon, at the user's explicit request (freed up by
 // dropping the login box mobile doesn't need).
 const MOBILE_EAR_WAVE_ICON = `
@@ -36,7 +38,7 @@ function renderMobileTopBar(vm?: ViewModel): string {
   const backAction = isCalibrate ? 'goBackToHearSetup' : 'goToGate';
   const backLabel = isCalibrate ? '戻る' : 'EXIT';
   return `
-  <div style="display:flex;align-items:center;justify-content:space-between;padding:40px 48px 0;">
+  <div style="height:${MOBILE_TOPBAR_H}px;flex-shrink:0;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;padding:0 48px;">
     <div data-action="${backAction}" class="eg-link" style="cursor:pointer;display:flex;align-items:center;gap:14px;font-family:var(--font-mono);font-size:29px;letter-spacing:3px;color:var(--text-dim);">
       <svg width="22" height="22" viewBox="0 0 12 12"><path d="M8 1 L3 6 L8 11" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
       ${backLabel}
@@ -47,6 +49,14 @@ function renderMobileTopBar(vm?: ViewModel): string {
         : ''
     }
   </div>`;
+}
+
+// Mirrored at the bottom of every post-explanation screen so the flex:1
+// content area between them is centered in the FULL canvas, not just in
+// whatever space happens to be left under the top bar (which reads as
+// "sitting too low" — the top bar alone eats space asymmetrically).
+function renderMobileBottomSpacer(): string {
+  return `<div style="height:${MOBILE_TOPBAR_H}px;flex-shrink:0;"></div>`;
 }
 
 export function renderMobileIntro(): string {
@@ -66,6 +76,7 @@ export function renderMobileIntro(): string {
       <div style="font-family:var(--font-mono);font-size:19px;color:var(--text-dim);line-height:1.6;">※使用機器の音量設定に依存する相対的な簡易チェックです。医療機関の聴力検査の代わりにはなりません。</div>
       <button data-action="goToHearSetup" class="eg-btn" style="background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:22px;padding:16px 64px;cursor:pointer;border-radius:4px;">はじめる</button>
     </div>
+    ${renderMobileBottomSpacer()}
   </div>`;
 }
 
@@ -111,6 +122,7 @@ export function renderMobileSetup(vm: ViewModel): string {
       </div>
       <button data-action="beginHearingCalibration" class="eg-btn" style="background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:22px;padding:16px 64px;cursor:pointer;border-radius:4px;">OK（音が出ます）</button>
     </div>
+    ${renderMobileBottomSpacer()}
   </div>`;
 }
 
@@ -128,6 +140,7 @@ export function renderMobileCalibrate(vm: ViewModel): string {
       </div>
       <button data-action="confirmHearingCalibration" class="eg-btn" style="background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:22px;padding:16px 64px;cursor:pointer;border-radius:4px;">この音量で測定を始める</button>
     </div>
+    ${renderMobileBottomSpacer()}
   </div>`;
 }
 
@@ -151,5 +164,6 @@ export function renderMobileMeasure(vm: ViewModel): string {
       </div>
       <div style="font-family:var(--font-mono);font-size:19px;color:var(--text-dim);">聞こえなければ何もしなくて大丈夫です</div>
     </div>
+    ${renderMobileBottomSpacer()}
   </div>`;
 }
