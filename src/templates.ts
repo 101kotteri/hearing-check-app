@@ -125,7 +125,7 @@ function renderHearSetup(vm: ViewModel): string {
 function renderHearCalibrate(vm: ViewModel): string {
   return `
   <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;max-width:560px;margin:0 auto;text-align:center;">
-    <div class="eg-play ${vm.hearCalPlayingClass}" style="width:100px;height:100px;border-radius:50%;background:var(--panel-2);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;">
+    <div class="eg-play ${vm.hearCalPlayingClass}" style="${breatheDelayStyle(CALIBRATE_BREATHE_CYCLE_MS)}width:100px;height:100px;border-radius:50%;background:var(--panel-2);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;">
       ${PLAY_ICON}
     </div>
     <div style="font-size:16px;font-weight:700;">音量を調整してください</div>
@@ -142,6 +142,10 @@ function renderHearCalibrate(vm: ViewModel): string {
 // flash in sync with audio. Locking animation-delay to the wall clock keeps the
 // animation's phase continuous across re-renders instead, independent of audio state.
 const BREATHE_CYCLE_MS = 3600;
+// Calibrate's tone plays continuously (not per-trial like measure's), so its
+// indicator pulses faster — shared by both PC and mobile, kept in sync with
+// style.css's .eg-play.is-playing duration.
+export const CALIBRATE_BREATHE_CYCLE_MS = 700;
 export function breatheDelayStyle(cycleMs: number = BREATHE_CYCLE_MS): string {
   const phaseSec = (Date.now() % cycleMs) / 1000;
   return `animation-delay:-${phaseSec.toFixed(3)}s;`;

@@ -6,7 +6,7 @@
 // 26px, mono body 23px, buttons 22px, EXIT 29px) per explicit direction to keep
 // the rest of the flow visually consistent with it, not just individually "big".
 
-import { breatheDelayStyle, escapeHtml, renderHearGraphBlock } from './templates';
+import { CALIBRATE_BREATHE_CYCLE_MS, breatheDelayStyle, escapeHtml, renderHearGraphBlock } from './templates';
 import type { ViewModel } from './viewModel';
 
 const MOBILE_TOPBAR_H = 90;
@@ -160,23 +160,13 @@ export function renderMobileSetup(vm: ViewModel): string {
   </div>`;
 }
 
-// Calibrate's tone plays continuously (not per-trial like measure's), so its
-// indicator pulses noticeably faster than measure's 3.6s breathing — per
-// explicit request. Kept in sync with style.css's .eg-play-mobile.is-playing
-// duration; breatheDelayStyle's wall-clock-synced negative delay avoids the
-// animation restarting from a dark frame on every re-render (see
-// breatheDelayStyle's own comment in templates.ts). eg-play-mobile (not just
-// eg-play, which PC's own calibrate circle also uses) keeps this mobile-only
-// — PC's circle stays exactly as it was, per standing direction.
-const CALIBRATE_BREATHE_CYCLE_MS = 1400;
-
 export function renderMobileCalibrate(vm: ViewModel): string {
   return `
   <div style="position:relative;width:100%;height:100%;display:flex;flex-direction:column;">
     ${renderMobileTopBar(vm)}
     <div style="flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;text-align:center;">
       <div style="position:relative;">
-        <div class="eg-play eg-play-mobile ${vm.hearCalPlayingClass}" style="${breatheDelayStyle(CALIBRATE_BREATHE_CYCLE_MS)}width:110px;height:110px;border-radius:50%;background:var(--panel-2);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;">
+        <div class="eg-play ${vm.hearCalPlayingClass}" style="${breatheDelayStyle(CALIBRATE_BREATHE_CYCLE_MS)}width:110px;height:110px;border-radius:50%;background:var(--panel-2);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;">
           ${MOBILE_PLAY_ICON}
         </div>
         <button data-action="stopHearingTest" class="eg-btn" style="position:absolute;left:100%;top:50%;transform:translateY(-50%);margin-left:28px;white-space:nowrap;background:var(--bad);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:20px;padding:16px 24px;cursor:pointer;border-radius:4px;">■ 緊急停止</button>
