@@ -1,4 +1,11 @@
-import { renderChassis, renderMobileRoot } from './chassis';
+import {
+  MOBILE_CHASSIS_H,
+  MOBILE_CHASSIS_W,
+  PC_CHASSIS_H,
+  PC_CHASSIS_W,
+  renderChassis,
+  renderMobileRoot,
+} from './chassis';
 import {
   GATE_PASSWORD,
   HEARING_CEILING_DB,
@@ -31,10 +38,16 @@ const OPENING_ZOOM_SCALE = 2.4;
 
 export class App {
   private state: AppState;
-  private screenRoot: HTMLElement;
+  private rootEl: HTMLElement;
+  private screenRoot!: HTMLElement;
   private printRoot: HTMLElement;
   private transitionOverlay: HTMLElement;
   private isMobile: boolean;
+  // Which outer shell is currently mounted in rootEl — PC always stays framed
+  // (chassis, 1504x838); mobile is framed only on the opening screen and
+  // frame-less everywhere after it (see mountRoot). Starts null so the first
+  // render() always performs an initial mount.
+  private isCurrentlyFramed: boolean | null = null;
 
   private audioCtx: AudioContext | null = null;
   private hearOsc: OscillatorNode | null = null;
@@ -55,11 +68,7 @@ export class App {
   constructor(root: HTMLElement, isMobile: boolean) {
     this.isMobile = isMobile;
     this.state = createInitialState(isMobile);
-
-    root.innerHTML = isMobile ? renderMobileRoot() : renderChassis();
-    const screenRoot = root.querySelector<HTMLElement>('#screen-root');
-    if (!screenRoot) throw new Error('screen-root not found in chassis markup');
-    this.screenRoot = screenRoot;
+    this.rootEl = root;
 
     // A body-level sibling of the chassis, not a descendant of it — the print
     // report must live outside the chassis's scaled/clipped wrapper hierarchy
@@ -76,10 +85,9 @@ export class App {
     this.transitionOverlay.id = 'transition-overlay';
     document.body.appendChild(this.transitionOverlay);
 
-    this.screenRoot.addEventListener('click', this.handleClick);
-    this.screenRoot.addEventListener('input', this.handleInput);
-    this.screenRoot.addEventListener('keydown', this.handleFieldKeyDown);
     window.addEventListener('keydown', this.handleGlobalKeyDown);
+    window.addEventListener('resize', this.fitToScreen);
+    window.addEventListener('orientationchange', this.fitToScreen);
 
     this.render();
   }
@@ -89,7 +97,43 @@ export class App {
     this.render();
   }
 
+  // True only on mobile's opening screen — every other screen (PC always;
+  // mobile from the explanation screen on) is frame-less.
+  private wantsFramedChassis(): boolean {
+    return !this.isMobile || this.state.screen === 'opening';
+  }
+
+  // Rebuilds rootEl's shell (chassis vs. frame-less canvas) and re-mounts
+  // #screen-root + its event listeners, only when the shell actually needs to
+  // change — the chassis/frame-less canvas have different fixed pixel sizes
+  // (see chassis.ts), so this also re-fits to the viewport.
+  private mountRoot(framed: boolean): void {
+    this.rootEl.innerHTML = framed ? renderChassis() : renderMobileRoot();
+    const screenRoot = this.rootEl.querySelector<HTMLElement>('#screen-root');
+    if (!screenRoot) throw new Error('screen-root not found in mounted shell markup');
+    this.screenRoot = screenRoot;
+    this.screenRoot.addEventListener('click', this.handleClick);
+    this.screenRoot.addEventListener('input', this.handleInput);
+    this.screenRoot.addEventListener('keydown', this.handleFieldKeyDown);
+    this.isCurrentlyFramed = framed;
+    this.fitToScreen();
+  }
+
+  private fitToScreen = (): void => {
+    const w = this.isCurrentlyFramed ? PC_CHASSIS_W : MOBILE_CHASSIS_W;
+    const h = this.isCurrentlyFramed ? PC_CHASSIS_H : MOBILE_CHASSIS_H;
+    const scale = Math.min(window.innerWidth / w, window.innerHeight / h, 1);
+    const offsetX = (window.innerWidth - w * scale) / 2;
+    const offsetY = (window.innerHeight - h * scale) / 2;
+    this.rootEl.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+  };
+
   private render(): void {
+    const wantFramed = this.wantsFramedChassis();
+    if (wantFramed !== this.isCurrentlyFramed) {
+      this.mountRoot(wantFramed);
+    }
+
     const vm = computeViewModel(this.state);
     if (this.isMobile && this.state.screen === 'opening') {
       this.screenRoot.innerHTML = renderMobileOpening();
