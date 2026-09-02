@@ -48,6 +48,11 @@ const OPENING_ZOOM_MS = 600;
 const OPENING_REVEAL_MS = 400;
 const OPENING_ZOOM_SCALE = 2.4;
 
+// Calibrate's decorative frame is mounted fresh (setup is frame-less) each
+// time it's entered — fades in like the opening screen's frame, just shorter
+// since there's no logo/title sequence waiting on it.
+const CALIBRATE_FRAME_FADE_IN_MS = 500;
+
 // How far down the frame (0-1) lands at the viewport's bottom edge when a
 // screen uses the 'overflow-top' fit mode (calibrate/measure) — tuned to crop
 // partway through the decorative button row, not the functional screen area.
@@ -215,12 +220,30 @@ export class App {
 
   private render(): void {
     const wantFramed = this.wantsFramedChassis();
+    const enteringFramed = wantFramed && !this.isCurrentlyFramed;
     if (wantFramed !== this.isCurrentlyFramed) {
       this.mountRoot(wantFramed);
     }
     this.isCurrentlyFramed = wantFramed;
     this.framedFitMode = this.wantsOverflowTopFit() ? 'overflow-top' : 'contain';
     this.fitToScreen();
+
+    // Setup (frame-less) leading into calibrate (framed) mounts the frame
+    // fresh — fade it in rather than have it pop in instantly. Measure stays
+    // framed the whole time (no re-mount, see wantsFramedChassis), so this
+    // only ever fires on the setup->calibrate transition, not calibrate-
+    // >measure. The opening screen's own framed entry is handled separately
+    // by startOpeningSequence, so it's excluded here.
+    if (enteringFramed && this.isMobile && this.state.screen === 'hearing' && this.state.hearStep === 'calibrate') {
+      const shell = this.rootEl.querySelector<HTMLElement>('#app-shell');
+      if (shell) {
+        shell.style.transition = 'none';
+        shell.style.opacity = '0';
+        void shell.offsetHeight; // force reflow before re-enabling transitions
+        shell.style.transition = `opacity ${CALIBRATE_FRAME_FADE_IN_MS}ms ease-out`;
+        shell.style.opacity = '1';
+      }
+    }
 
     const vm = computeViewModel(this.state);
 
