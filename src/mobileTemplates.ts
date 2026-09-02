@@ -44,10 +44,32 @@ function renderMobileBackButton(action: string, label: string): string {
   </div>`;
 }
 
+// Standalone version of the top bar's button row, for app.ts to mount into a
+// body-level overlay positioned with the frame-less canvas's own fit math —
+// calibrate/measure render inside the decorative frame's bezel, which sits at
+// a different offset/scale than the frame-less screens, so a button drawn
+// inside that bezel can't land at the same screen position as the
+// explanation screen's. Placing an identical button outside the frame,
+// transformed the same way the frame-less canvas is, does. See app.ts.
+export function renderMobileBackButtonOverlay(action: string, label: string): string {
+  return `
+  <div style="height:${MOBILE_TOPBAR_H}px;box-sizing:border-box;display:flex;align-items:center;padding:0 48px;">
+    ${renderMobileBackButton(action, label)}
+  </div>`;
+}
+
 function renderMobileTopBar(vm?: ViewModel): string {
   const isCalibrate = vm?.isHearCalibrate ?? false;
-  const backAction = isCalibrate ? 'goBackToHearSetup' : 'goToGate';
-  const backLabel = isCalibrate ? '戻る' : 'EXIT';
+  const isMeasure = vm?.isHearMeasure ?? false;
+  // calibrate/measure's back button is rendered externally (see
+  // renderMobileBackButtonOverlay / app.ts) so it can sit outside the
+  // decorative frame at the explanation screen's position — leave this
+  // in-frame top bar empty for them, just reserving its height.
+  if (isCalibrate || isMeasure) {
+    return `<div style="height:${MOBILE_TOPBAR_H}px;flex-shrink:0;"></div>`;
+  }
+  const backAction = 'goToGate';
+  const backLabel = 'EXIT';
   return `
   <div style="height:${MOBILE_TOPBAR_H}px;flex-shrink:0;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;padding:0 48px;">
     ${renderMobileBackButton(backAction, backLabel)}

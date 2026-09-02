@@ -27,6 +27,7 @@ import {
   HEARING_TEST_ORDER,
 } from './constants';
 import {
+  renderMobileBackButtonOverlay,
   renderMobileCalibrate,
   renderMobileDone,
   renderMobileIntro,
@@ -58,6 +59,7 @@ export class App {
   private screenRoot!: HTMLElement;
   private printRoot: HTMLElement;
   private transitionOverlay: HTMLElement;
+  private backBtnOverlay: HTMLElement;
   private isMobile: boolean;
   // Which outer shell is currently mounted in rootEl — PC always stays framed
   // (chassis, 1504x838); mobile is framed only on the opening screen and
@@ -104,6 +106,21 @@ export class App {
     this.transitionOverlay = document.createElement('div');
     this.transitionOverlay.id = 'transition-overlay';
     document.body.appendChild(this.transitionOverlay);
+
+    // Also body-level: calibrate/measure's back button is drawn here instead
+    // of inside the decorative frame's bezel, transformed with the frame-less
+    // canvas's own fit math (see render()) so it lands at the same screen
+    // position as the explanation screen's button rather than wherever the
+    // frame's bezel happens to be scaled to.
+    this.backBtnOverlay = document.createElement('div');
+    this.backBtnOverlay.id = 'back-btn-overlay';
+    this.backBtnOverlay.style.position = 'fixed';
+    this.backBtnOverlay.style.top = '0';
+    this.backBtnOverlay.style.left = '0';
+    this.backBtnOverlay.style.transformOrigin = 'top left';
+    this.backBtnOverlay.style.pointerEvents = 'none';
+    this.backBtnOverlay.addEventListener('click', this.handleClick);
+    document.body.appendChild(this.backBtnOverlay);
 
     window.addEventListener('keydown', this.handleGlobalKeyDown);
     window.addEventListener('resize', this.fitToScreen);
@@ -160,6 +177,16 @@ export class App {
     this.screenRoot.addEventListener('keydown', this.handleFieldKeyDown);
   }
 
+  // Shared "shrink/grow to fit, centered" math (the frame-less canvas's own
+  // fit mode) — factored out so the back-button overlay can use it too, even
+  // when the frame-less canvas isn't the thing actually mounted.
+  private computeContainTransform(w: number, h: number): { scale: number; offsetX: number; offsetY: number } {
+    const scale = Math.min(window.innerWidth / w, window.innerHeight / h, 1);
+    const offsetX = (window.innerWidth - w * scale) / 2;
+    const offsetY = (window.innerHeight - h * scale) / 2;
+    return { scale, offsetX, offsetY };
+  }
+
   private fitToScreen = (): void => {
     const w = this.isCurrentlyFramed ? (this.isMobile ? MOBILE_OPENING_FRAME_W : PC_CHASSIS_W) : MOBILE_CHASSIS_W;
     const h = this.isCurrentlyFramed ? (this.isMobile ? MOBILE_OPENING_FRAME_H : PC_CHASSIS_H) : MOBILE_CHASSIS_H;
@@ -172,13 +199,18 @@ export class App {
       const scale = window.innerHeight / (h * OVERFLOW_CROP_FRACTION);
       const offsetX = (window.innerWidth - w * scale) / 2;
       this.rootEl.style.transform = `translate(${offsetX}px, 0px) scale(${scale})`;
-      return;
+    } else {
+      const { scale, offsetX, offsetY } = this.computeContainTransform(w, h);
+      this.rootEl.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
     }
 
-    const scale = Math.min(window.innerWidth / w, window.innerHeight / h, 1);
-    const offsetX = (window.innerWidth - w * scale) / 2;
-    const offsetY = (window.innerHeight - h * scale) / 2;
-    this.rootEl.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+    // Always positioned with the frame-less canvas's own fit math, regardless
+    // of what's actually mounted — see the backBtnOverlay field comment.
+    const { scale: bScale, offsetX: bOffsetX, offsetY: bOffsetY } = this.computeContainTransform(
+      MOBILE_CHASSIS_W,
+      MOBILE_CHASSIS_H
+    );
+    this.backBtnOverlay.style.transform = `translate(${bOffsetX}px, ${bOffsetY}px) scale(${bScale})`;
   };
 
   private render(): void {
@@ -191,6 +223,15 @@ export class App {
     this.fitToScreen();
 
     const vm = computeViewModel(this.state);
+
+    if (this.wantsOverflowTopFit()) {
+      const backAction = this.state.hearStep === 'calibrate' ? 'goBackToHearSetup' : 'goToGate';
+      const backLabel = this.state.hearStep === 'calibrate' ? '戻る' : 'EXIT';
+      this.backBtnOverlay.innerHTML = renderMobileBackButtonOverlay(backAction, backLabel);
+    } else {
+      this.backBtnOverlay.innerHTML = '';
+    }
+
     if (this.isMobile && this.state.screen === 'opening') {
       this.screenRoot.innerHTML = renderMobileOpening();
     } else if (this.isMobile && this.state.screen === 'hearing' && this.state.hearStep === 'intro') {
@@ -220,6 +261,23 @@ export class App {
     if (!target) return;
     const action = target.dataset.action!;
     const value = target.dataset.value;
+    // The "raised" mobile back/EXIT buttons re-render (and often navigate off
+    // this element entirely) synchronously on click — without a deliberate
+    // pause, the browser never gets a chance to paint the CSS :active press
+    // frame before the DOM under it changes, so the button appeared to do
+    // nothing. Hold the actual dispatch back briefly so the press is visible.
+    if (target.classList.contains('eg-back-btn')) {
+      // CSS :active alone ends the instant the pointer lifts (before click
+      // even fires), so a manual class is what actually stays visible
+      // through the delay above.
+      target.classList.add('is-pressed');
+      window.setTimeout(() => this.dispatchAction(action, value), 140);
+      return;
+    }
+    this.dispatchAction(action, value);
+  };
+
+  private dispatchAction(action: string, value: string | undefined): void {
     switch (action) {
       case 'submitPassword':
         this.submitPassword();
@@ -255,7 +313,7 @@ export class App {
         this.printHearingReport();
         break;
     }
-  };
+  }
 
   private handleInput = (e: Event): void => {
     const target = e.target as HTMLInputElement;
