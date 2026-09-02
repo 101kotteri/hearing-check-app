@@ -280,7 +280,7 @@ export class App {
       shellForFadeIn.style.transition = 'none';
       shellForFadeIn.style.opacity = '0';
       void shellForFadeIn.offsetHeight; // force reflow before re-enabling transitions
-      shellForFadeIn.style.transition = `opacity ${OPENING_FRAME_FADE_IN_MS}ms ease`;
+      shellForFadeIn.style.transition = `opacity ${OPENING_FRAME_FADE_IN_MS}ms linear`;
       shellForFadeIn.style.opacity = '1';
     }
 
