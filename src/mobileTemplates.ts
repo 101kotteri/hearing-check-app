@@ -169,9 +169,14 @@ export function renderMobileMeasure(vm: ViewModel): string {
   </div>`;
 }
 
-const MOBILE_GRAPH_SCALE = 1.45;
+const MOBILE_GRAPH_SCALE = 1.0;
 const MOBILE_GRAPH_W = 900;
-const MOBILE_GRAPH_H = 300; // 280 plot + 6 margin + 14 axis-label row, matching renderHearGraphBlock's markup
+// Measured empirically (not just summed from the markup's declared 280+6+14=300):
+// the axis-tick-label row's actual rendered extent runs past its own 14px box,
+// so the true content height is bigger than the naive sum. Verified via
+// getBoundingClientRect that 380 fully contains the rendered content with room
+// to spare — don't shrink this back to 300 without re-measuring.
+const MOBILE_GRAPH_H = 380;
 
 export function renderMobileDone(vm: ViewModel): string {
   return `
@@ -189,7 +194,7 @@ export function renderMobileDone(vm: ViewModel): string {
       }
     </div>
     <div style="flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;">
-      <div style="display:flex;align-items:center;gap:28px;font-family:var(--font-mono);font-size:20px;color:var(--text);">
+      <div style="display:flex;flex-shrink:0;align-items:center;gap:28px;font-family:var(--font-mono);font-size:20px;color:var(--text);">
         <div style="display:flex;align-items:center;gap:10px;">
           <span>Name</span>
           <input type="text" placeholder="任意" data-bind="hearReportName" style="background:var(--panel);border:1px solid var(--line);color:var(--text);font-family:var(--font-mono);font-size:20px;padding:8px 12px;border-radius:2px;outline:none;width:200px;" />
@@ -197,12 +202,12 @@ export function renderMobileDone(vm: ViewModel): string {
         <div>測定日 ${vm.hearReportDate}</div>
         <button data-action="printHearingReport" class="eg-btn-pdf" style="background:transparent;border:1px solid var(--accent);color:var(--accent);padding:10px 24px;border-radius:2px;font-weight:700;letter-spacing:2px;font-size:18px;cursor:pointer;transition:border-color 0.15s ease, color 0.15s ease;">PDFで保存</button>
       </div>
-      <div style="width:${MOBILE_GRAPH_W * MOBILE_GRAPH_SCALE}px;height:${MOBILE_GRAPH_H * MOBILE_GRAPH_SCALE}px;overflow:visible;">
+      <div style="width:${MOBILE_GRAPH_W * MOBILE_GRAPH_SCALE}px;height:${MOBILE_GRAPH_H * MOBILE_GRAPH_SCALE}px;flex-shrink:0;overflow:visible;">
         <div style="width:${MOBILE_GRAPH_W}px;transform:scale(${MOBILE_GRAPH_SCALE});transform-origin:top left;">
           ${renderHearGraphBlock(vm)}
         </div>
       </div>
-      <div style="display:flex;justify-content:center;gap:28px;font-family:var(--font-mono);font-size:20px;color:var(--text-dim);">
+      <div style="display:flex;flex-shrink:0;justify-content:center;gap:28px;font-family:var(--font-mono);font-size:20px;color:var(--text-dim);margin-top:16px;margin-bottom:20px;">
         <div style="display:flex;align-items:center;gap:8px;"><span style="width:12px;height:12px;border-radius:50%;border:2px solid var(--bad);display:inline-block;"></span>右耳</div>
         <div style="display:flex;align-items:center;gap:8px;"><span style="width:12px;height:12px;border:2px solid var(--ear-l);display:inline-block;transform:rotate(45deg);"></span>左耳</div>
       </div>
