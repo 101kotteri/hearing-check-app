@@ -181,7 +181,8 @@ button {
     min-height: 0;
   }
   #app,
-  #transition-overlay {
+  #transition-overlay,
+  #back-btn-overlay {
     display: none;
   }
   #print-root {

@@ -274,15 +274,30 @@ function renderHearDone(vm: ViewModel): string {
 // clipped wrapper hierarchy (see chassis.ts) — printing it from inside that
 // hierarchy left leftover chassis background/backgrop and mis-scoped
 // position:absolute coordinates. This is a plain, unscaled, unclipped element.
+//
+// Deliberately uses SYSTEM fonts, not var(--font-mono)/var(--font-display)
+// (the Google-Fonts-loaded faces the rest of the app uses): iOS Safari's
+// print-to-PDF pipeline (and Chrome's mobile device-emulation print) can't
+// embed those web fonts as vector text and falls back to rasterizing the
+// whole page as an image instead — this is what was blowing up the exported
+// PDF from ~34KB (desktop, system-ish font stack already resolved) to
+// 985KB-4MB on mobile, and is the most likely reason the hairline grid lines
+// were vanishing (rasterized/anti-aliased away). System fonts sidestep the
+// embedding problem entirely.
 export function renderPrintReport(vm: ViewModel): string {
   const dbTicksLeftPrint = vm.hearDbTicks
     .map((t) => `<div style="position:absolute;top:${t.y}px;left:0;transform:translateY(-50%);">${t.label}</div>`)
     .join('');
+  // Drawn as SVG <line> elements (not absolutely-positioned 1px divs) — hairline
+  // divs are prone to landing between pixel rows and vanishing entirely when a
+  // print pipeline rasterizes the page (observed: grid disappeared on iOS
+  // Safari / Chrome's mobile emulation print-to-PDF, while a vector vector
+  // <line> survives rasterization at any resolution).
   const printGridV = vm.hearGraph.graphTicks
-    .map((t) => `<div style="position:absolute;left:${t.x}px;top:0;bottom:0;width:1px;background:#e0e0e0;"></div>`)
+    .map((t) => `<line x1="${t.x}" y1="0" x2="${t.x}" y2="280" stroke="#d0d0d0" stroke-width="1"/>`)
     .join('');
   const printGridH = vm.hearDbTicks
-    .map((t) => `<div style="position:absolute;left:0;top:${t.y}px;width:100%;height:1px;background:#e0e0e0;"></div>`)
+    .map((t) => `<line x1="0" y1="${t.y}" x2="860" y2="${t.y}" stroke="#d0d0d0" stroke-width="1"/>`)
     .join('');
   const printRightPoints = vm.hearGraph.rightPoints
     .map(
@@ -317,7 +332,7 @@ export function renderPrintReport(vm: ViewModel): string {
     .join('');
 
   return `
-  <div class="eg-print-report" style="background:#ffffff;color:#111111;font-family:var(--font-mono);padding:32px;">
+  <div class="eg-print-report" style="background:#ffffff;color:#111111;font-family:-apple-system,'Hiragino Kaku Gothic ProN','Yu Gothic',Menlo,Consolas,monospace;padding:32px;">
     <div style="font-size:20px;font-weight:700;letter-spacing:2px;margin-bottom:4px;">聴力チェック 測定結果</div>
     <div style="font-size:11px;color:#666;letter-spacing:1px;margin-bottom:20px;">HEARING CHECK 簡易セルフチェック（相対値）</div>
     <div style="display:flex;gap:32px;font-size:12px;margin-bottom:20px;">
@@ -328,10 +343,10 @@ export function renderPrintReport(vm: ViewModel): string {
       <div style="display:flex;">
         <div style="width:40px;height:280px;position:relative;font-size:9px;color:#666;">${dbTicksLeftPrint}</div>
         <div style="width:860px;height:280px;position:relative;border:1px solid #ccc;overflow:hidden;">
-          ${printGridV}
-          ${printGridH}
-          <div style="position:absolute;left:0;top:${vm.hearRefLineY}px;width:100%;height:1px;background:#999;"></div>
           <svg width="860" height="280" viewBox="0 0 860 280" style="position:absolute;top:0;left:0;">
+            ${printGridV}
+            ${printGridH}
+            <line x1="0" y1="${vm.hearRefLineY}" x2="860" y2="${vm.hearRefLineY}" stroke="#999" stroke-width="1"/>
             <path d="${vm.hearGraph.rightPath}" stroke="#c0392b" stroke-width="2" fill="none"/>
             <path d="${vm.hearGraph.leftPath}" stroke="#2255aa" stroke-width="2" fill="none"/>
           </svg>
