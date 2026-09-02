@@ -74,10 +74,10 @@ export interface ViewModel {
 // The on-screen graph keeps a little headroom past the highest test frequency
 // (10kHz) so its point marker isn't clipped by the panel's overflow:hidden edge.
 const HEAR_SCREEN_AXIS_MAX_FREQ = 12500;
-// The printed report is fixed to exactly the tested range, independent of the
-// screen margin above and independent of how many frequencies were measured.
+// The printed report is fixed to exactly this range, independent of the screen
+// margin above and independent of how many frequencies were actually measured.
 const HEAR_PRINT_AXIS_MIN_FREQ = 63;
-const HEAR_PRINT_AXIS_MAX_FREQ = 10000;
+const HEAR_PRINT_AXIS_MAX_FREQ = 16000;
 const HEAR_AXIS_MIN_FREQ = 63;
 const HEAR_GRAPH_W = 860;
 const HEAR_GRAPH_H = 280;
