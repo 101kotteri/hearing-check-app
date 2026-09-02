@@ -31,7 +31,7 @@ import { computeViewModel } from './viewModel';
 
 type HearDirection = 'descend' | 'ascend';
 
-const OPENING_HOLD_MS = 2700;
+const OPENING_HOLD_MS = 3000;
 const OPENING_ZOOM_MS = 600;
 const OPENING_REVEAL_MS = 400;
 const OPENING_ZOOM_SCALE = 2.4;
