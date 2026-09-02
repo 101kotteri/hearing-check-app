@@ -2,6 +2,12 @@
 // PC/chassis screens per explicit direction: the opening screen keeps a frame,
 // everything after it (starting at the explanation/intro screen) has none, and
 // text throughout is sized up for a phone held in landscape rather than a desk.
+// Sizes below all key off the explanation screen's established baseline (title
+// 26px, mono body 23px, buttons 22px, EXIT 29px) per explicit direction to keep
+// the rest of the flow visually consistent with it, not just individually "big".
+
+import { breatheDelayStyle, escapeHtml } from './templates';
+import type { ViewModel } from './viewModel';
 
 // 2x the PC gate screen's icon, at the user's explicit request (freed up by
 // dropping the login box mobile doesn't need).
@@ -24,13 +30,22 @@ export function renderMobileOpening(): string {
   </div>`;
 }
 
-function renderMobileTopBar(): string {
+function renderMobileTopBar(vm?: ViewModel): string {
+  const isCalibrate = vm?.isHearCalibrate ?? false;
+  const showStop = vm?.hearShowStop ?? false;
+  const backAction = isCalibrate ? 'goBackToHearSetup' : 'goToGate';
+  const backLabel = isCalibrate ? '戻る' : 'EXIT';
   return `
-  <div style="display:flex;align-items:center;padding:40px 48px 0;">
-    <div data-action="goToGate" class="eg-link" style="cursor:pointer;display:flex;align-items:center;gap:14px;font-family:var(--font-mono);font-size:29px;letter-spacing:3px;color:var(--text-dim);">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:40px 48px 0;">
+    <div data-action="${backAction}" class="eg-link" style="cursor:pointer;display:flex;align-items:center;gap:14px;font-family:var(--font-mono);font-size:29px;letter-spacing:3px;color:var(--text-dim);">
       <svg width="22" height="22" viewBox="0 0 12 12"><path d="M8 1 L3 6 L8 11" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
-      EXIT
+      ${backLabel}
     </div>
+    ${
+      showStop
+        ? `<div data-action="stopHearingTest" class="eg-link" style="cursor:pointer;font-family:var(--font-mono);font-size:24px;letter-spacing:2px;color:var(--bad);">■ 緊急停止</div>`
+        : ''
+    }
   </div>`;
 }
 
@@ -50,6 +65,91 @@ export function renderMobileIntro(): string {
       </div>
       <div style="font-family:var(--font-mono);font-size:19px;color:var(--text-dim);line-height:1.6;">※使用機器の音量設定に依存する相対的な簡易チェックです。医療機関の聴力検査の代わりにはなりません。</div>
       <button data-action="goToHearSetup" class="eg-btn" style="background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:22px;padding:16px 64px;cursor:pointer;border-radius:4px;">はじめる</button>
+    </div>
+  </div>`;
+}
+
+const MOBILE_PLAY_ICON = `<svg width="30" height="30" viewBox="0 0 24 24"><path d="M3 10v4h4l5 5V5L7 10H3z" fill="var(--accent)"/></svg>`;
+
+export function renderMobileSetup(vm: ViewModel): string {
+  const deviceButtons = vm.hearDeviceOptions
+    .map(
+      (opt) =>
+        `<button data-action="selectHearDeviceType" data-value="${opt.id}" style="background:${
+          opt.active ? 'var(--panel-2)' : 'transparent'
+        };border:1px solid ${opt.active ? 'var(--accent)' : 'var(--line)'};color:${
+          opt.active ? 'var(--accent)' : 'var(--text-dim)'
+        };padding:16px 32px;border-radius:4px;font-weight:700;letter-spacing:1px;font-size:21px;cursor:pointer;font-family:var(--font-mono);">${
+          opt.label
+        }</button>`
+    )
+    .join('');
+  const listeningButtons = vm.hearListeningOptions
+    .map(
+      (opt) =>
+        `<button data-action="selectHearListeningType" data-value="${opt.id}" style="background:${
+          opt.active ? 'var(--panel-2)' : 'transparent'
+        };border:1px solid ${opt.active ? 'var(--accent)' : 'var(--line)'};color:${
+          opt.active ? 'var(--accent)' : 'var(--text-dim)'
+        };padding:16px 24px;border-radius:4px;font-weight:700;letter-spacing:0.5px;font-size:19px;cursor:pointer;font-family:var(--font-mono);white-space:pre-line;line-height:1.6;">${escapeHtml(
+          opt.label
+        )}</button>`
+    )
+    .join('');
+  return `
+  <div style="position:relative;width:100%;height:100%;display:flex;flex-direction:column;">
+    ${renderMobileTopBar(vm)}
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;text-align:center;">
+      <div style="font-size:26px;font-weight:700;letter-spacing:1px;">測定環境を選択してください</div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
+        <div style="font-family:var(--font-mono);font-size:20px;letter-spacing:1px;color:var(--text-dim);">再生機器</div>
+        <div style="display:flex;gap:14px;">${deviceButtons}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
+        <div style="font-family:var(--font-mono);font-size:20px;letter-spacing:1px;color:var(--text-dim);">音質の特性</div>
+        <div style="display:flex;gap:14px;">${listeningButtons}</div>
+      </div>
+      <button data-action="beginHearingCalibration" class="eg-btn" style="background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:22px;padding:16px 64px;cursor:pointer;border-radius:4px;">OK（音が出ます）</button>
+    </div>
+  </div>`;
+}
+
+export function renderMobileCalibrate(vm: ViewModel): string {
+  return `
+  <div style="position:relative;width:100%;height:100%;display:flex;flex-direction:column;">
+    ${renderMobileTopBar(vm)}
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;text-align:center;">
+      <div class="eg-play ${vm.hearCalPlayingClass}" style="width:110px;height:110px;border-radius:50%;background:var(--panel-2);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;">
+        ${MOBILE_PLAY_ICON}
+      </div>
+      <div style="font-size:24px;font-weight:700;">音量を調整してください</div>
+      <div style="font-family:var(--font-mono);font-size:22px;color:var(--text-dim);line-height:1.9;">
+        1kHzの基準音が鳴り続けています。<br/>ヘッドホン/イヤホンの音量を、無理なくはっきり聞き取れる<br/>「ちょうど良い」大きさに調整してください。<br/>調整後は測定が終わるまで機器の音量を変更しないでください。
+      </div>
+      <button data-action="confirmHearingCalibration" class="eg-btn" style="background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:22px;padding:16px 64px;cursor:pointer;border-radius:4px;">この音量で測定を始める</button>
+    </div>
+  </div>`;
+}
+
+export function renderMobileMeasure(vm: ViewModel): string {
+  return `
+  <div style="position:relative;width:100%;height:100%;display:flex;flex-direction:column;">
+    ${renderMobileTopBar(vm)}
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;">
+      <div style="font-family:var(--font-mono);font-size:23px;letter-spacing:1px;color:var(--text-dim);">${
+        vm.hearEarLabel
+      }耳 測定中 / ${vm.hearCurrentFreqLabel}</div>
+      <div style="width:420px;height:8px;background:var(--panel-2);border-radius:4px;overflow:hidden;">
+        <div style="height:100%;width:${vm.hearProgressPct}%;background:var(--accent);transition:width 0.3s ease;"></div>
+      </div>
+      <div class="eg-hear-indicator" style="${breatheDelayStyle()}width:130px;height:130px;border-radius:50%;background:var(--panel-2);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;">
+        ${MOBILE_PLAY_ICON}
+      </div>
+      <div style="display:flex;align-items:center;gap:20px;">
+        <button data-action="handleHearingHeard" class="eg-btn" style="background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:22px;padding:20px 0;width:320px;cursor:pointer;border-radius:4px;">聞こえたら押す</button>
+        <button data-action="stopHearingTest" class="eg-btn" style="background:var(--bad);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:22px;padding:20px 28px;cursor:pointer;border-radius:4px;">■ 緊急停止</button>
+      </div>
+      <div style="font-family:var(--font-mono);font-size:19px;color:var(--text-dim);">聞こえなければ何もしなくて大丈夫です</div>
     </div>
   </div>`;
 }

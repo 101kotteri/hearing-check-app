@@ -23,7 +23,13 @@ import {
   HEARING_STEP_SMALL,
   HEARING_TEST_ORDER,
 } from './constants';
-import { renderMobileIntro, renderMobileOpening } from './mobileTemplates';
+import {
+  renderMobileCalibrate,
+  renderMobileIntro,
+  renderMobileMeasure,
+  renderMobileOpening,
+  renderMobileSetup,
+} from './mobileTemplates';
 import { renderPrintReport, renderScreenContent } from './templates';
 import type { AppState, DeviceType, ListeningType } from './types';
 import { createInitialHearingState, createInitialState } from './types';
@@ -140,10 +146,16 @@ export class App {
       this.screenRoot.innerHTML = renderMobileOpening();
     } else if (this.isMobile && this.state.screen === 'hearing' && this.state.hearStep === 'intro') {
       this.screenRoot.innerHTML = renderMobileIntro();
+    } else if (this.isMobile && this.state.screen === 'hearing' && this.state.hearStep === 'setup') {
+      this.screenRoot.innerHTML = renderMobileSetup(vm);
+    } else if (this.isMobile && this.state.screen === 'hearing' && this.state.hearStep === 'calibrate') {
+      this.screenRoot.innerHTML = renderMobileCalibrate(vm);
+    } else if (this.isMobile && this.state.screen === 'hearing' && this.state.hearStep === 'measure') {
+      this.screenRoot.innerHTML = renderMobileMeasure(vm);
     } else {
-      // Steps not yet designed for mobile (setup/calibrate/measure/done) fall
-      // back to the PC templates for now, still frame-less on mobile since
-      // #screen-root itself has no chassis around it in mobile mode.
+      // 'done' (results/graph/PDF) isn't mobile-designed yet — falls back to
+      // the PC template for now, still frame-less on mobile since #screen-root
+      // itself has no chassis around it in mobile mode.
       this.screenRoot.innerHTML = renderScreenContent(this.state, vm);
     }
     this.printRoot.innerHTML = vm.isHearDone ? renderPrintReport(vm) : '';
