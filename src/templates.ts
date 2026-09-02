@@ -48,11 +48,13 @@ function renderGate(s: AppState): string {
 }
 
 function renderHearTopBar(vm: ViewModel): string {
+  const backAction = vm.isHearCalibrate ? 'goBackToHearSetup' : 'goToGate';
+  const backLabel = vm.isHearCalibrate ? '戻る' : 'EXIT';
   return `
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;height:14px;">
-    <div data-action="goToGate" class="eg-link" style="cursor:pointer;display:flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:12px;letter-spacing:2px;color:var(--text-dim);">
+    <div data-action="${backAction}" class="eg-link" style="cursor:pointer;display:flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:12px;letter-spacing:2px;color:var(--text-dim);">
       ${BACK_ICON}
-      EXIT
+      ${backLabel}
     </div>
     <div style="font-family:var(--font-mono);font-size:12px;letter-spacing:4px;color:var(--text-dim);">聴力チェック</div>
     ${

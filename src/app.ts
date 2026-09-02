@@ -82,6 +82,9 @@ export class App {
       case 'goToHearSetup':
         this.goToHearSetup();
         break;
+      case 'goBackToHearSetup':
+        this.goBackToHearSetup();
+        break;
       case 'selectHearDeviceType':
         this.selectHearDeviceType(value as DeviceType);
         break;
@@ -162,6 +165,11 @@ export class App {
 
   private goToHearSetup(): void {
     this.setState({ hearStep: 'setup' });
+  }
+
+  private goBackToHearSetup(): void {
+    this.stopHearingAudio();
+    this.setState({ hearStep: 'setup', hearCalPlaying: false });
   }
 
   private selectHearDeviceType(type: DeviceType): void {
