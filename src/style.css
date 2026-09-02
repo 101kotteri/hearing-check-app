@@ -68,6 +68,30 @@ button {
 .eg-link:hover {
   color: var(--text);
 }
+.eg-back-btn {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 26px;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  background: linear-gradient(180deg, var(--panel-2) 0%, var(--panel) 100%);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 26px;
+  box-shadow: 0 3px 0 oklch(0.09 0.006 260), 0 6px 12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  transition: transform 0.08s ease, box-shadow 0.08s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.eg-back-btn:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+.eg-back-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 oklch(0.09 0.006 260), 0 2px 4px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
 .eg-play:hover {
   border-color: var(--good);
 }

@@ -32,16 +32,25 @@ export function renderMobileOpening(): string {
   </div>`;
 }
 
+// Shared "raised" back/EXIT button — same markup everywhere it appears (the
+// explanation screen, setup, calibrate's 戻る, measure's EXIT, and the results
+// screen's EXIT) so position and styling stay identical across the whole flow,
+// per explicit request.
+function renderMobileBackButton(action: string, label: string): string {
+  return `
+  <div data-action="${action}" class="eg-back-btn">
+    <svg width="18" height="18" viewBox="0 0 12 12"><path d="M8 1 L3 6 L8 11" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
+    ${label}
+  </div>`;
+}
+
 function renderMobileTopBar(vm?: ViewModel): string {
   const isCalibrate = vm?.isHearCalibrate ?? false;
   const backAction = isCalibrate ? 'goBackToHearSetup' : 'goToGate';
   const backLabel = isCalibrate ? '戻る' : 'EXIT';
   return `
   <div style="height:${MOBILE_TOPBAR_H}px;flex-shrink:0;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;padding:0 48px;">
-    <div data-action="${backAction}" class="eg-link" style="cursor:pointer;display:flex;align-items:center;gap:14px;font-family:var(--font-mono);font-size:29px;letter-spacing:3px;color:var(--text-dim);">
-      <svg width="22" height="22" viewBox="0 0 12 12"><path d="M8 1 L3 6 L8 11" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
-      ${backLabel}
-    </div>
+    ${renderMobileBackButton(backAction, backLabel)}
   </div>`;
 }
 
@@ -181,10 +190,7 @@ export function renderMobileDone(vm: ViewModel): string {
   return `
   <div style="position:relative;width:100%;height:100%;display:flex;flex-direction:column;">
     <div style="position:relative;height:${MOBILE_TOPBAR_H}px;flex-shrink:0;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;padding:0 48px;">
-      <div data-action="goToGate" class="eg-link" style="cursor:pointer;display:flex;align-items:center;gap:14px;font-family:var(--font-mono);font-size:29px;letter-spacing:3px;color:var(--text-dim);">
-        <svg width="22" height="22" viewBox="0 0 12 12"><path d="M8 1 L3 6 L8 11" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
-        EXIT
-      </div>
+      ${renderMobileBackButton('goToGate', 'EXIT')}
       <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:26px;font-weight:700;letter-spacing:1px;">測定結果</div>
       ${
         vm.hearIsPartial
