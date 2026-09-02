@@ -169,7 +169,7 @@ export function renderMobileMeasure(vm: ViewModel): string {
   </div>`;
 }
 
-const MOBILE_GRAPH_SCALE = 1.0;
+const MOBILE_GRAPH_SCALE = 1.05;
 const MOBILE_GRAPH_W = 900;
 // Measured empirically (not just summed from the markup's declared 280+6+14=300):
 // the axis-tick-label row's actual rendered extent runs past its own 14px box,
