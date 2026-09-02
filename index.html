@@ -10,10 +10,27 @@
     <title>Hearing Check</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!--
+      Loaded non-render-blocking (media="print" trick + onload swap): a normal
+      blocking stylesheet link delays first paint until the font CSS arrives,
+      but the opening screen's JS-triggered fade-in transition starts on its
+      own clock regardless of paint timing - so a blocked first paint was
+      eating into the fade's visible duration, making it look faster than its
+      real 1.5s. Painting immediately (on black, before fonts even arrive)
+      lets the fade play out its full stated duration.
+    -->
     <link
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      media="print"
+      onload="this.media='all'"
     />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      />
+    </noscript>
   </head>
   <body>
     <div id="app"></div>
