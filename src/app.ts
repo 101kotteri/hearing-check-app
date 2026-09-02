@@ -400,6 +400,10 @@ export class App {
   }
 
   private printHearingReport(): void {
+    // hearReportName updates skip a re-render (see handleInput) to keep the input's
+    // caret position while typing, so the hidden .eg-print-report copy can be stale.
+    // Focus is on this button, not the name field, so re-rendering here is safe.
+    this.render();
     window.print();
   }
 }

@@ -134,6 +134,17 @@ function renderHearCalibrate(vm: ViewModel): string {
   </div>`;
 }
 
+// The breathing indicator's DOM node gets recreated on every re-render (a trial
+// starting/ending re-renders the measure screen), which would normally restart
+// the CSS animation from its dark starting frame every time — visible as a jarring
+// flash in sync with audio. Locking animation-delay to the wall clock keeps the
+// animation's phase continuous across re-renders instead, independent of audio state.
+const BREATHE_CYCLE_MS = 3600;
+function breatheDelayStyle(): string {
+  const phaseSec = (Date.now() % BREATHE_CYCLE_MS) / 1000;
+  return `animation-delay:-${phaseSec.toFixed(3)}s;`;
+}
+
 function renderHearMeasure(vm: ViewModel): string {
   return `
   <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;">
@@ -143,7 +154,7 @@ function renderHearMeasure(vm: ViewModel): string {
     <div style="width:360px;height:6px;background:var(--panel-2);border-radius:3px;overflow:hidden;">
       <div style="height:100%;width:${vm.hearProgressPct}%;background:var(--accent);transition:width 0.3s ease;"></div>
     </div>
-    <div class="eg-hear-indicator" style="width:120px;height:120px;border-radius:50%;background:var(--panel-2);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;">
+    <div class="eg-hear-indicator" style="${breatheDelayStyle()}width:120px;height:120px;border-radius:50%;background:var(--panel-2);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;">
       ${PLAY_ICON_SMALL}
     </div>
     <div style="display:flex;align-items:center;gap:16px;">
@@ -159,13 +170,13 @@ function renderHearDone(vm: ViewModel): string {
     .map((t) => `<div style="position:absolute;top:${t.y}px;left:0;transform:translateY(-50%);">${t.label}</div>`)
     .join('');
   const dbTicksLeftPrint = dbTicksLeft;
-  const gridVLines = vm.hearGraphTicks
+  const gridVLines = vm.hearGraph.graphTicks
     .map((t) => `<div style="position:absolute;left:${t.x}px;top:0;bottom:0;width:1px;background:var(--line);opacity:0.4;"></div>`)
     .join('');
   const gridHLines = vm.hearDbTicks
     .map((t) => `<div style="position:absolute;left:0;top:${t.y}px;width:100%;height:1px;background:var(--line);opacity:0.4;"></div>`)
     .join('');
-  const rightPoints = vm.hearRightPoints
+  const rightPoints = vm.hearGraph.rightPoints
     .map(
       (pt) => `
       <div style="position:absolute;left:${pt.x}px;top:${pt.y}px;width:11px;height:11px;border-radius:50%;border:2px solid var(--bad);background:var(--panel);transform:translate(-50%,-50%);"></div>
@@ -179,7 +190,7 @@ function renderHearDone(vm: ViewModel): string {
       }`
     )
     .join('');
-  const leftPoints = vm.hearLeftPoints
+  const leftPoints = vm.hearGraph.leftPoints
     .map(
       (pt) => `
       <div style="position:absolute;left:${pt.x}px;top:${pt.y}px;width:11px;height:11px;transform:translate(-50%,-50%) rotate(45deg);">
@@ -196,21 +207,22 @@ function renderHearDone(vm: ViewModel): string {
       }`
     )
     .join('');
-  const axisLabelsBottom = vm.hearGraphTicks
+  const axisLabelsBottom = vm.hearGraph.graphTicks
     .map(
       (t) =>
         `<div style="position:absolute;left:${t.x}px;transform:translateX(-50%);font-family:var(--font-mono);font-size:9px;color:var(--text-dim);white-space:nowrap;">${t.label}</div>`
     )
     .join('');
 
-  // Print report (light theme copy, reuses the same point/path data).
-  const printGridV = vm.hearGraphTicks
+  // Print report: a fixed 63Hz-10kHz axis (vm.hearPrintGraph), independent of the
+  // on-screen graph's wider axis margin and of how many frequencies were tested.
+  const printGridV = vm.hearPrintGraph.graphTicks
     .map((t) => `<div style="position:absolute;left:${t.x}px;top:0;bottom:0;width:1px;background:#e0e0e0;"></div>`)
     .join('');
   const printGridH = vm.hearDbTicks
     .map((t) => `<div style="position:absolute;left:0;top:${t.y}px;width:100%;height:1px;background:#e0e0e0;"></div>`)
     .join('');
-  const printRightPoints = vm.hearRightPoints
+  const printRightPoints = vm.hearPrintGraph.rightPoints
     .map(
       (pt) => `
       <div style="position:absolute;left:${pt.x}px;top:${pt.y}px;width:11px;height:11px;border-radius:50%;border:2px solid #c0392b;background:#fff;transform:translate(-50%,-50%);"></div>
@@ -221,7 +233,7 @@ function renderHearDone(vm: ViewModel): string {
       }`
     )
     .join('');
-  const printLeftPoints = vm.hearLeftPoints
+  const printLeftPoints = vm.hearPrintGraph.leftPoints
     .map(
       (pt) => `
       <div style="position:absolute;left:${pt.x}px;top:${pt.y}px;width:11px;height:11px;transform:translate(-50%,-50%) rotate(45deg);">
@@ -235,7 +247,7 @@ function renderHearDone(vm: ViewModel): string {
       }`
     )
     .join('');
-  const printAxisLabels = vm.hearGraphTicks
+  const printAxisLabels = vm.hearPrintGraph.graphTicks
     .map(
       (t) =>
         `<div style="position:absolute;left:${t.x}px;transform:translateX(-50%);font-size:9px;color:#666;white-space:nowrap;">${t.label}</div>`
@@ -266,8 +278,8 @@ function renderHearDone(vm: ViewModel): string {
           ${gridHLines}
           <div style="position:absolute;left:0;top:${vm.hearRefLineY}px;width:100%;height:1px;background:var(--accent);opacity:0.5;"></div>
           <svg width="860" height="280" viewBox="0 0 860 280" style="position:absolute;top:0;left:0;pointer-events:none;">
-            <path d="${vm.hearRightPath}" stroke="var(--bad)" stroke-width="2" fill="none"/>
-            <path d="${vm.hearLeftPath}" stroke="var(--ear-l)" stroke-width="2" fill="none"/>
+            <path d="${vm.hearGraph.rightPath}" stroke="var(--bad)" stroke-width="2" fill="none"/>
+            <path d="${vm.hearGraph.leftPath}" stroke="var(--ear-l)" stroke-width="2" fill="none"/>
           </svg>
           ${rightPoints}
           ${leftPoints}
@@ -296,8 +308,8 @@ function renderHearDone(vm: ViewModel): string {
         ${printGridH}
         <div style="position:absolute;left:0;top:${vm.hearRefLineY}px;width:100%;height:1px;background:#999;"></div>
         <svg width="860" height="280" viewBox="0 0 860 280" style="position:absolute;top:0;left:0;">
-          <path d="${vm.hearRightPath}" stroke="#c0392b" stroke-width="2" fill="none"/>
-          <path d="${vm.hearLeftPath}" stroke="#2255aa" stroke-width="2" fill="none"/>
+          <path d="${vm.hearPrintGraph.rightPath}" stroke="#c0392b" stroke-width="2" fill="none"/>
+          <path d="${vm.hearPrintGraph.leftPath}" stroke="#2255aa" stroke-width="2" fill="none"/>
         </svg>
         ${printRightPoints}
         ${printLeftPoints}
