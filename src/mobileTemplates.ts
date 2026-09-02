@@ -137,7 +137,7 @@ export function renderMobileCalibrate(vm: ViewModel): string {
       </div>
       <button data-action="confirmHearingCalibration" class="eg-btn" style="background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:22px;padding:16px 64px;cursor:pointer;border-radius:4px;">この音量で測定を始める</button>
     </div>
-    <div style="height:${MOBILE_TOPBAR_H + 39}px;flex-shrink:0;"></div>
+    ${renderMobileBottomSpacer()}
   </div>`;
 }
 

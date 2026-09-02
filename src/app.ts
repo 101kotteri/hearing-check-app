@@ -46,6 +46,11 @@ const OPENING_ZOOM_MS = 600;
 const OPENING_REVEAL_MS = 400;
 const OPENING_ZOOM_SCALE = 2.4;
 
+// How far down the frame (0-1) lands at the viewport's bottom edge when a
+// screen uses the 'overflow-top' fit mode (calibrate/measure) — tuned to crop
+// partway through the decorative button row, not the functional screen area.
+const OVERFLOW_CROP_FRACTION = 0.82;
+
 export class App {
   private state: AppState;
   private rootEl: HTMLElement;
@@ -58,6 +63,10 @@ export class App {
   // frame-less everywhere after it (see mountRoot). Starts null so the first
   // render() always performs an initial mount.
   private isCurrentlyFramed: boolean | null = null;
+  // 'contain': fit entirely within the viewport, centered (opening screen, PC).
+  // 'overflow-top': enlarged, top-aligned, bottom deliberately cropped
+  // (calibrate/measure — see wantsOverflowTopFit).
+  private framedFitMode: 'contain' | 'overflow-top' = 'contain';
 
   private audioCtx: AudioContext | null = null;
   private hearOsc: OscillatorNode | null = null;
@@ -107,21 +116,37 @@ export class App {
     this.render();
   }
 
-  // True only on mobile's opening screen — every other screen (PC always;
-  // mobile from the explanation screen on) is frame-less.
+  // Framed on: PC always; mobile's opening screen; mobile's calibrate/measure
+  // steps (brought back by explicit request — everything else from the
+  // explanation screen on stays frame-less).
   private wantsFramedChassis(): boolean {
-    return !this.isMobile || this.state.screen === 'opening';
+    if (!this.isMobile) return true;
+    if (this.state.screen === 'opening') return true;
+    return (
+      this.state.screen === 'hearing' && (this.state.hearStep === 'calibrate' || this.state.hearStep === 'measure')
+    );
+  }
+
+  // calibrate/measure want the frame enlarged and top-aligned, deliberately
+  // cropped at the bottom (through the decorative button row) rather than
+  // shrunk to fit like the opening screen — see fitToScreen.
+  private wantsOverflowTopFit(): boolean {
+    return (
+      this.isMobile &&
+      this.state.screen === 'hearing' &&
+      (this.state.hearStep === 'calibrate' || this.state.hearStep === 'measure')
+    );
   }
 
   // Rebuilds rootEl's shell (chassis vs. frame-less canvas) and re-mounts
-  // #screen-root + its event listeners, only when the shell actually needs to
-  // change — the chassis/frame-less canvas have different fixed pixel sizes
-  // (see chassis.ts), so this also re-fits to the viewport.
+  // #screen-root + its event listeners — only called when the shell markup
+  // itself needs to change (see render()). Positioning/scale is handled
+  // separately by fitToScreen, which render() always calls afterward.
   private mountRoot(framed: boolean): void {
     if (framed) {
-      // PC always gets the full-width chassis; mobile's opening screen gets
-      // its own narrower, closer-to-square variant (explicitly NOT the PC
-      // chassis, which stays exactly as-is).
+      // PC always gets the full-width chassis; mobile gets its own narrower,
+      // closer-to-square variant (explicitly NOT the PC chassis, which stays
+      // exactly as-is) for both the opening screen and calibrate/measure.
       this.rootEl.innerHTML = this.isMobile ? renderMobileOpeningFrame() : renderChassis();
     } else {
       this.rootEl.innerHTML = renderMobileRoot();
@@ -132,13 +157,23 @@ export class App {
     this.screenRoot.addEventListener('click', this.handleClick);
     this.screenRoot.addEventListener('input', this.handleInput);
     this.screenRoot.addEventListener('keydown', this.handleFieldKeyDown);
-    this.isCurrentlyFramed = framed;
-    this.fitToScreen();
   }
 
   private fitToScreen = (): void => {
     const w = this.isCurrentlyFramed ? (this.isMobile ? MOBILE_OPENING_FRAME_W : PC_CHASSIS_W) : MOBILE_CHASSIS_W;
     const h = this.isCurrentlyFramed ? (this.isMobile ? MOBILE_OPENING_FRAME_H : PC_CHASSIS_H) : MOBILE_CHASSIS_H;
+
+    if (this.isCurrentlyFramed && this.framedFitMode === 'overflow-top') {
+      // Scale so that OVERFLOW_CROP_FRACTION down the frame lands exactly at
+      // the viewport's bottom edge (top-aligned, horizontally centered) —
+      // deliberately bigger than a "contain" fit, cropping the bottom of the
+      // decorative casing rather than shrinking the whole frame to fit it.
+      const scale = window.innerHeight / (h * OVERFLOW_CROP_FRACTION);
+      const offsetX = (window.innerWidth - w * scale) / 2;
+      this.rootEl.style.transform = `translate(${offsetX}px, 0px) scale(${scale})`;
+      return;
+    }
+
     const scale = Math.min(window.innerWidth / w, window.innerHeight / h, 1);
     const offsetX = (window.innerWidth - w * scale) / 2;
     const offsetY = (window.innerHeight - h * scale) / 2;
@@ -150,6 +185,9 @@ export class App {
     if (wantFramed !== this.isCurrentlyFramed) {
       this.mountRoot(wantFramed);
     }
+    this.isCurrentlyFramed = wantFramed;
+    this.framedFitMode = this.wantsOverflowTopFit() ? 'overflow-top' : 'contain';
+    this.fitToScreen();
 
     const vm = computeViewModel(this.state);
     if (this.isMobile && this.state.screen === 'opening') {
