@@ -169,7 +169,7 @@ export function renderMobileMeasure(vm: ViewModel): string {
   </div>`;
 }
 
-const MOBILE_GRAPH_SCALE = 1.3;
+const MOBILE_GRAPH_SCALE = 1.45;
 const MOBILE_GRAPH_W = 900;
 const MOBILE_GRAPH_H = 300; // 280 plot + 6 margin + 14 axis-label row, matching renderHearGraphBlock's markup
 
@@ -188,7 +188,7 @@ export function renderMobileDone(vm: ViewModel): string {
           : ''
       }
     </div>
-    <div style="flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;">
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;">
       <div style="display:flex;align-items:center;gap:28px;font-family:var(--font-mono);font-size:20px;color:var(--text);">
         <div style="display:flex;align-items:center;gap:10px;">
           <span>Name</span>
@@ -206,8 +206,7 @@ export function renderMobileDone(vm: ViewModel): string {
         <div style="display:flex;align-items:center;gap:8px;"><span style="width:12px;height:12px;border-radius:50%;border:2px solid var(--bad);display:inline-block;"></span>右耳</div>
         <div style="display:flex;align-items:center;gap:8px;"><span style="width:12px;height:12px;border:2px solid var(--ear-l);display:inline-block;transform:rotate(45deg);"></span>左耳</div>
       </div>
-      <div style="font-family:var(--font-mono);font-size:15px;letter-spacing:-0.2px;color:var(--text-dim);white-space:nowrap;">※相対値による簡易チェックです。絶対的な聴力レベル(dB HL)ではなく、使用機器での聞こえ方の左右差・帯域バランスの目安としてご覧ください。医療機関の検査結果とは一致しません。</div>
     </div>
-    <div style="height:20px;flex-shrink:0;pointer-events:none;"></div>
+    <div style="flex-shrink:0;text-align:center;padding-bottom:14px;font-family:var(--font-mono);font-size:15px;letter-spacing:-0.2px;color:var(--text-dim);white-space:nowrap;">※相対値による簡易チェックです。絶対的な聴力レベル(dB HL)ではなく、使用機器での聞こえ方の左右差・帯域バランスの目安としてご覧ください。医療機関の検査結果とは一致しません。</div>
   </div>`;
 }
