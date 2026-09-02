@@ -58,3 +58,20 @@ export function renderChassis(): string {
     <div style="position:absolute;top:714px;left:0;width:1504px;display:flex;justify-content:center;align-items:center;gap:60px;pointer-events:none;">${knobs}</div>
   </div>`;
 }
+
+export const PC_CHASSIS_W = 1504;
+export const PC_CHASSIS_H = 838;
+
+// The mobile app has no decorative casing (per direction: opening screen keeps
+// the frame, everything after it is frame-less) — just the same 1440x630
+// screen canvas every template already assumes, at native 1:1 scale, with
+// #app itself fit-scaled to the device viewport (see main.ts).
+export const MOBILE_CHASSIS_W = 1440;
+export const MOBILE_CHASSIS_H = 630;
+
+export function renderMobileRoot(): string {
+  return `
+  <div style="width:${MOBILE_CHASSIS_W}px;height:${MOBILE_CHASSIS_H}px;background:var(--bg);color:var(--text);font-family:var(--font-display);position:relative;overflow:hidden;">
+    <div id="screen-root" style="position:relative;width:100%;height:100%;"></div>
+  </div>`;
+}

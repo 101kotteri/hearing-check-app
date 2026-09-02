@@ -1,7 +1,7 @@
 export type Ear = 'right' | 'left';
 export type DeviceType = 'headphone' | 'earphone';
 export type ListeningType = 'reference' | 'listening';
-export type Screen = 'gate' | 'hearing';
+export type Screen = 'gate' | 'opening' | 'hearing';
 export type HearStep = 'intro' | 'setup' | 'calibrate' | 'measure' | 'done';
 
 export interface FrequencyResult {
@@ -56,9 +56,9 @@ export function createInitialHearingState(): Pick<
   };
 }
 
-export function createInitialState(): AppState {
+export function createInitialState(isMobile: boolean): AppState {
   return {
-    screen: 'gate',
+    screen: isMobile ? 'opening' : 'gate',
     password: '',
     passwordError: false,
     ...createInitialHearingState(),

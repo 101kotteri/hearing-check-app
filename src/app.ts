@@ -1,4 +1,4 @@
-import { renderChassis } from './chassis';
+import { renderChassis, renderMobileRoot } from './chassis';
 import {
   GATE_PASSWORD,
   HEARING_CEILING_DB,
@@ -16,6 +16,7 @@ import {
   HEARING_STEP_SMALL,
   HEARING_TEST_ORDER,
 } from './constants';
+import { renderMobileIntro, renderMobileOpening } from './mobileTemplates';
 import { renderPrintReport, renderScreenContent } from './templates';
 import type { AppState, DeviceType, ListeningType } from './types';
 import { createInitialHearingState, createInitialState } from './types';
@@ -23,10 +24,17 @@ import { computeViewModel } from './viewModel';
 
 type HearDirection = 'descend' | 'ascend';
 
+const OPENING_HOLD_MS = 2200;
+const OPENING_ZOOM_MS = 600;
+const OPENING_REVEAL_MS = 400;
+const OPENING_ZOOM_SCALE = 2.4;
+
 export class App {
-  private state: AppState = createInitialState();
+  private state: AppState;
   private screenRoot: HTMLElement;
   private printRoot: HTMLElement;
+  private transitionOverlay: HTMLElement;
+  private isMobile: boolean;
 
   private audioCtx: AudioContext | null = null;
   private hearOsc: OscillatorNode | null = null;
@@ -41,9 +49,14 @@ export class App {
   private hearTrialStartTimer: number | undefined;
   private hearTrialTimer: number | undefined;
   private hearGapTimer: number | undefined;
+  private openingTimer1: number | undefined;
+  private openingTimer2: number | undefined;
 
-  constructor(root: HTMLElement) {
-    root.innerHTML = renderChassis();
+  constructor(root: HTMLElement, isMobile: boolean) {
+    this.isMobile = isMobile;
+    this.state = createInitialState(isMobile);
+
+    root.innerHTML = isMobile ? renderMobileRoot() : renderChassis();
     const screenRoot = root.querySelector<HTMLElement>('#screen-root');
     if (!screenRoot) throw new Error('screen-root not found in chassis markup');
     this.screenRoot = screenRoot;
@@ -55,6 +68,13 @@ export class App {
     this.printRoot = document.createElement('div');
     this.printRoot.id = 'print-root';
     document.body.appendChild(this.printRoot);
+
+    // Also body-level: the opening→explanation transition fades this to black
+    // and back independent of the templated re-render (see startOpeningSequence),
+    // the same reasoning as printRoot.
+    this.transitionOverlay = document.createElement('div');
+    this.transitionOverlay.id = 'transition-overlay';
+    document.body.appendChild(this.transitionOverlay);
 
     this.screenRoot.addEventListener('click', this.handleClick);
     this.screenRoot.addEventListener('input', this.handleInput);
@@ -71,8 +91,21 @@ export class App {
 
   private render(): void {
     const vm = computeViewModel(this.state);
-    this.screenRoot.innerHTML = renderScreenContent(this.state, vm);
+    if (this.isMobile && this.state.screen === 'opening') {
+      this.screenRoot.innerHTML = renderMobileOpening();
+    } else if (this.isMobile && this.state.screen === 'hearing' && this.state.hearStep === 'intro') {
+      this.screenRoot.innerHTML = renderMobileIntro();
+    } else {
+      // Steps not yet designed for mobile (setup/calibrate/measure/done) fall
+      // back to the PC templates for now, still frame-less on mobile since
+      // #screen-root itself has no chassis around it in mobile mode.
+      this.screenRoot.innerHTML = renderScreenContent(this.state, vm);
+    }
     this.printRoot.innerHTML = vm.isHearDone ? renderPrintReport(vm) : '';
+
+    if (this.isMobile && this.state.screen === 'opening') {
+      this.startOpeningSequence();
+    }
   }
 
   // ---- event delegation -------------------------------------------------
@@ -165,12 +198,52 @@ export class App {
 
   private goToGate(): void {
     this.stopHearingAudio();
+    if (this.isMobile) {
+      // No login on mobile — EXIT returns to the opening screen instead,
+      // replaying its animation (render() starts it whenever screen becomes
+      // 'opening').
+      this.setState({ screen: 'opening', ...createInitialHearingState() });
+      return;
+    }
     this.setState({
       screen: 'gate',
       password: '',
       passwordError: false,
       ...createInitialHearingState(),
     });
+  }
+
+  // ---- mobile opening screen -----------------------------------------------
+
+  private startOpeningSequence(): void {
+    window.clearTimeout(this.openingTimer1);
+    window.clearTimeout(this.openingTimer2);
+
+    // Reset the overlay instantly (no transition) in case this is a replay
+    // (EXIT back to opening) and it's mid-fade from a previous run.
+    this.transitionOverlay.style.transition = 'none';
+    this.transitionOverlay.style.opacity = '0';
+    void this.transitionOverlay.offsetHeight; // force reflow before re-enabling transitions
+    this.transitionOverlay.style.transition = '';
+
+    this.openingTimer1 = window.setTimeout(() => {
+      const content = this.screenRoot.querySelector<HTMLElement>('.mobile-opening-content');
+      if (content) {
+        content.style.transition = `transform ${OPENING_ZOOM_MS}ms ease-in, opacity ${OPENING_ZOOM_MS}ms ease-in`;
+        content.style.transform = `scale(${OPENING_ZOOM_SCALE})`;
+        content.style.opacity = '0';
+      }
+      this.transitionOverlay.style.transition = `opacity ${OPENING_ZOOM_MS}ms ease-in`;
+      this.transitionOverlay.style.opacity = '1';
+
+      this.openingTimer2 = window.setTimeout(() => {
+        this.setState({ screen: 'hearing', hearStep: 'intro' });
+        requestAnimationFrame(() => {
+          this.transitionOverlay.style.transition = `opacity ${OPENING_REVEAL_MS}ms ease-out`;
+          this.transitionOverlay.style.opacity = '0';
+        });
+      }, OPENING_ZOOM_MS);
+    }, OPENING_HOLD_MS);
   }
 
   private goToHearSetup(): void {

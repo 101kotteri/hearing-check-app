@@ -85,6 +85,41 @@ button {
   animation: eg-hear-breathe 3.6s ease-in-out infinite;
 }
 
+@keyframes mobile-opening-logo-spin-in {
+  from {
+    opacity: 0;
+    transform: rotateY(90deg);
+  }
+  to {
+    opacity: 1;
+    transform: rotateY(0deg);
+  }
+}
+@keyframes mobile-opening-text-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.mobile-opening-logo {
+  animation: mobile-opening-logo-spin-in 0.6s ease-out both;
+  transform-style: preserve-3d;
+}
+.mobile-opening-text {
+  animation: mobile-opening-text-fade-in 0.3s ease-out 0.6s both;
+}
+
+#transition-overlay {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1000;
+}
+
 #print-root {
   display: none;
 }
@@ -104,7 +139,8 @@ button {
     display: block;
     min-height: 0;
   }
-  #app {
+  #app,
+  #transition-overlay {
     display: none;
   }
   #print-root {
