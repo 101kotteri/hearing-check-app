@@ -51,9 +51,14 @@ function renderMobileBackButton(action: string, label: string): string {
 // inside that bezel can't land at the same screen position as the
 // explanation screen's. Placing an identical button outside the frame,
 // transformed the same way the frame-less canvas is, does. See app.ts.
+// Left padding is smaller than the in-frame top bar's 48px — the decorative
+// frame's own left edge sits closer to this button than the frame-less
+// canvas's edge does, so the full 48px let the button overlap the frame on
+// some viewport sizes; a little less padding pulls it further left, clear
+// of the frame, per explicit report.
 export function renderMobileBackButtonOverlay(action: string, label: string): string {
   return `
-  <div style="height:${MOBILE_TOPBAR_H}px;box-sizing:border-box;display:flex;align-items:center;padding:0 48px;">
+  <div style="height:${MOBILE_TOPBAR_H}px;box-sizing:border-box;display:flex;align-items:center;padding:0 48px 0 24px;">
     ${renderMobileBackButton(action, label)}
   </div>`;
 }
@@ -103,7 +108,7 @@ export function renderMobileIntro(): string {
         ・体調に異変を感じたら、いつでも「緊急停止」で中断できます
       </div>
       <div style="font-family:var(--font-mono);font-size:19px;color:var(--text-dim);line-height:1.6;">※使用機器の音量設定に依存する相対的な簡易チェックです。医療機関の聴力検査の代わりにはなりません。</div>
-      <button data-action="goToHearSetup" class="eg-btn" style="background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:22px;padding:16px 64px;cursor:pointer;border-radius:4px;">はじめる</button>
+      <button data-action="goToHearSetup" class="eg-btn eg-btn-glow" style="background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:22px;padding:16px 64px;cursor:pointer;border-radius:4px;">はじめる</button>
     </div>
     ${renderMobileBottomSpacer()}
   </div>`;
@@ -149,7 +154,7 @@ export function renderMobileSetup(vm: ViewModel): string {
         <div style="font-family:var(--font-mono);font-size:20px;letter-spacing:1px;color:var(--text-dim);">音質の特性</div>
         <div style="display:flex;gap:14px;">${listeningButtons}</div>
       </div>
-      <button data-action="beginHearingCalibration" class="eg-btn" style="background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:22px;padding:16px 64px;cursor:pointer;border-radius:4px;">OK（音が出ます）</button>
+      <button data-action="beginHearingCalibration" class="eg-btn eg-btn-glow" style="background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:22px;padding:16px 64px;cursor:pointer;border-radius:4px;">OK（音が出ます）</button>
     </div>
     ${renderMobileBottomSpacer()}
   </div>`;
@@ -170,7 +175,7 @@ export function renderMobileCalibrate(vm: ViewModel): string {
       <div style="font-family:var(--font-mono);font-size:22px;color:var(--text-dim);line-height:1.9;">
         1kHzの基準音が鳴り続けています。<br/>ヘッドホン/イヤホンの音量を、無理なくはっきり聞き取れる<br/>「ちょうど良い」大きさに調整してください。<br/>調整後は測定が終わるまで機器の音量を変更しないでください。
       </div>
-      <button data-action="confirmHearingCalibration" class="eg-btn" style="background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:22px;padding:16px 64px;cursor:pointer;border-radius:4px;">この音量で測定を始める</button>
+      <button data-action="confirmHearingCalibration" class="eg-btn eg-btn-glow" style="background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:22px;padding:16px 64px;cursor:pointer;border-radius:4px;">この音量で測定を始める</button>
     </div>
     ${renderMobileBottomSpacer()}
   </div>`;
@@ -191,7 +196,7 @@ export function renderMobileMeasure(vm: ViewModel): string {
         ${MOBILE_PLAY_ICON}
       </div>
       <div style="display:flex;align-items:center;gap:20px;">
-        <button data-action="handleHearingHeard" class="eg-btn" style="background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:22px;padding:20px 0;width:320px;cursor:pointer;border-radius:4px;">聞こえたら押す</button>
+        <button data-action="handleHearingHeard" class="eg-btn eg-btn-glow" style="background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:22px;padding:20px 0;width:320px;cursor:pointer;border-radius:4px;">聞こえたら押す</button>
         <button data-action="stopHearingTest" class="eg-btn" style="background:var(--bad);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:22px;padding:20px 28px;cursor:pointer;border-radius:4px;">■ 緊急停止</button>
       </div>
       <div style="font-family:var(--font-mono);font-size:19px;color:var(--text-dim);">聞こえなければ何もしなくて大丈夫です</div>

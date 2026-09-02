@@ -261,17 +261,21 @@ export class App {
     if (!target) return;
     const action = target.dataset.action!;
     const value = target.dataset.value;
-    // The "raised" mobile back/EXIT buttons re-render (and often navigate off
+    // Both of these mobile button styles re-render (and often navigate off
     // this element entirely) synchronously on click — without a deliberate
-    // pause, the browser never gets a chance to paint the CSS :active press
-    // frame before the DOM under it changes, so the button appeared to do
-    // nothing. Hold the actual dispatch back briefly so the press is visible.
+    // pause, the browser never gets a chance to paint the CSS :active/press
+    // frame before the DOM under it changes, so neither the raised back
+    // button's press nor the orange buttons' glow burst was ever visible.
+    // A manual class (CSS :active alone ends the instant the pointer lifts,
+    // before click even fires) plus a short held-back dispatch fixes both.
     if (target.classList.contains('eg-back-btn')) {
-      // CSS :active alone ends the instant the pointer lifts (before click
-      // even fires), so a manual class is what actually stays visible
-      // through the delay above.
       target.classList.add('is-pressed');
       window.setTimeout(() => this.dispatchAction(action, value), 140);
+      return;
+    }
+    if (target.classList.contains('eg-btn-glow')) {
+      target.classList.add('is-glowing');
+      window.setTimeout(() => this.dispatchAction(action, value), 220);
       return;
     }
     this.dispatchAction(action, value);
