@@ -109,6 +109,11 @@ button {
 .eg-play:hover {
   border-color: var(--good);
 }
+/* Mobile-only — PC's calibrate circle stays as-is (no blink), see
+   renderMobileCalibrate's comment. */
+.eg-play-mobile.is-playing {
+  animation: eg-hear-breathe 1.4s ease-in-out infinite;
+}
 
 @keyframes eg-hear-breathe {
   0%,

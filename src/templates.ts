@@ -142,8 +142,8 @@ function renderHearCalibrate(vm: ViewModel): string {
 // flash in sync with audio. Locking animation-delay to the wall clock keeps the
 // animation's phase continuous across re-renders instead, independent of audio state.
 const BREATHE_CYCLE_MS = 3600;
-export function breatheDelayStyle(): string {
-  const phaseSec = (Date.now() % BREATHE_CYCLE_MS) / 1000;
+export function breatheDelayStyle(cycleMs: number = BREATHE_CYCLE_MS): string {
+  const phaseSec = (Date.now() % cycleMs) / 1000;
   return `animation-delay:-${phaseSec.toFixed(3)}s;`;
 }
 
