@@ -167,7 +167,12 @@ function renderHearMeasure(vm: ViewModel): string {
   </div>`;
 }
 
-function renderHearDone(vm: ViewModel): string {
+// The graph block (frequency/dB axes + both ears' points+path), shared as-is
+// between the PC results screen and the mobile results screen (which wraps
+// this same 900px-wide markup in a CSS scale transform to enlarge it, rather
+// than recomputing the underlying HEAR_GRAPH_W/H coordinate system, which
+// print also depends on).
+export function renderHearGraphBlock(vm: ViewModel): string {
   const dbTicksLeft = vm.hearDbTicks
     .map((t) => `<div style="position:absolute;top:${t.y}px;left:0;transform:translateY(-50%);">${t.label}</div>`)
     .join('');
@@ -216,6 +221,27 @@ function renderHearDone(vm: ViewModel): string {
     .join('');
 
   return `
+  <div style="width:900px;">
+    <div style="display:flex;">
+      <div style="width:40px;height:280px;position:relative;font-family:var(--font-mono);font-size:9px;color:var(--text-dim);">${dbTicksLeft}</div>
+      <div style="flex:1;height:280px;position:relative;background:var(--panel);border:1px solid var(--line);border-radius:4px;overflow:hidden;">
+        ${gridVLines}
+        ${gridHLines}
+        <div style="position:absolute;left:0;top:${vm.hearRefLineY}px;width:100%;height:1px;background:var(--accent);opacity:0.5;"></div>
+        <svg width="860" height="280" viewBox="0 0 860 280" style="position:absolute;top:0;left:0;pointer-events:none;">
+          <path d="${vm.hearGraph.rightPath}" stroke="var(--bad)" stroke-width="2" fill="none"/>
+          <path d="${vm.hearGraph.leftPath}" stroke="var(--ear-l)" stroke-width="2" fill="none"/>
+        </svg>
+        ${rightPoints}
+        ${leftPoints}
+      </div>
+    </div>
+    <div style="margin-left:40px;position:relative;height:14px;margin-top:6px;">${axisLabelsBottom}</div>
+  </div>`;
+}
+
+function renderHearDone(vm: ViewModel): string {
+  return `
   <div style="flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;align-items:center;gap:18px;padding:8px 0 16px;">
     <div style="font-family:var(--font-mono);font-size:13px;letter-spacing:4px;color:var(--text-dim);">測定結果</div>
     ${
@@ -231,23 +257,7 @@ function renderHearDone(vm: ViewModel): string {
       <div>測定日 ${vm.hearReportDate}</div>
       <button data-action="printHearingReport" class="eg-btn-pdf" style="background:transparent;padding:10px 24px;border-radius:2px;font-weight:700;letter-spacing:2px;font-size:12px;cursor:pointer;transition:border-color 0.15s ease, color 0.15s ease;">PDFで保存</button>
     </div>
-    <div style="width:900px;">
-      <div style="display:flex;">
-        <div style="width:40px;height:280px;position:relative;font-family:var(--font-mono);font-size:9px;color:var(--text-dim);">${dbTicksLeft}</div>
-        <div style="flex:1;height:280px;position:relative;background:var(--panel);border:1px solid var(--line);border-radius:4px;overflow:hidden;">
-          ${gridVLines}
-          ${gridHLines}
-          <div style="position:absolute;left:0;top:${vm.hearRefLineY}px;width:100%;height:1px;background:var(--accent);opacity:0.5;"></div>
-          <svg width="860" height="280" viewBox="0 0 860 280" style="position:absolute;top:0;left:0;pointer-events:none;">
-            <path d="${vm.hearGraph.rightPath}" stroke="var(--bad)" stroke-width="2" fill="none"/>
-            <path d="${vm.hearGraph.leftPath}" stroke="var(--ear-l)" stroke-width="2" fill="none"/>
-          </svg>
-          ${rightPoints}
-          ${leftPoints}
-        </div>
-      </div>
-      <div style="margin-left:40px;position:relative;height:14px;margin-top:6px;">${axisLabelsBottom}</div>
-    </div>
+    ${renderHearGraphBlock(vm)}
     <div style="display:flex;justify-content:center;gap:24px;font-family:var(--font-mono);font-size:11px;color:var(--text-dim);">
       <div style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;border:2px solid var(--bad);display:inline-block;"></span>右耳</div>
       <div style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border:2px solid var(--ear-l);display:inline-block;transform:rotate(45deg);"></span>左耳</div>

@@ -28,6 +28,7 @@ import {
 } from './constants';
 import {
   renderMobileCalibrate,
+  renderMobileDone,
   renderMobileIntro,
   renderMobileMeasure,
   renderMobileOpening,
@@ -200,10 +201,9 @@ export class App {
       this.screenRoot.innerHTML = renderMobileCalibrate(vm);
     } else if (this.isMobile && this.state.screen === 'hearing' && this.state.hearStep === 'measure') {
       this.screenRoot.innerHTML = renderMobileMeasure(vm);
+    } else if (this.isMobile && this.state.screen === 'hearing' && this.state.hearStep === 'done') {
+      this.screenRoot.innerHTML = renderMobileDone(vm);
     } else {
-      // 'done' (results/graph/PDF) isn't mobile-designed yet — falls back to
-      // the PC template for now, still frame-less on mobile since #screen-root
-      // itself has no chassis around it in mobile mode.
       this.screenRoot.innerHTML = renderScreenContent(this.state, vm);
     }
     this.printRoot.innerHTML = vm.isHearDone ? renderPrintReport(vm) : '';

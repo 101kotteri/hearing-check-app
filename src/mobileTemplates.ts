@@ -6,7 +6,7 @@
 // 26px, mono body 23px, buttons 22px, EXIT 29px) per explicit direction to keep
 // the rest of the flow visually consistent with it, not just individually "big".
 
-import { breatheDelayStyle, escapeHtml } from './templates';
+import { breatheDelayStyle, escapeHtml, renderHearGraphBlock } from './templates';
 import type { ViewModel } from './viewModel';
 
 const MOBILE_TOPBAR_H = 90;
@@ -166,5 +166,47 @@ export function renderMobileMeasure(vm: ViewModel): string {
       <div style="font-family:var(--font-mono);font-size:19px;color:var(--text-dim);">聞こえなければ何もしなくて大丈夫です</div>
     </div>
     ${renderMobileBottomSpacer()}
+  </div>`;
+}
+
+const MOBILE_GRAPH_SCALE = 1.3;
+const MOBILE_GRAPH_W = 900;
+const MOBILE_GRAPH_H = 300; // 280 plot + 6 margin + 14 axis-label row, matching renderHearGraphBlock's markup
+
+export function renderMobileDone(vm: ViewModel): string {
+  return `
+  <div style="position:relative;width:100%;height:100%;display:flex;flex-direction:column;">
+    <div style="height:${MOBILE_TOPBAR_H}px;flex-shrink:0;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;padding:0 48px;">
+      <div data-action="goToGate" class="eg-link" style="cursor:pointer;display:flex;align-items:center;gap:14px;font-family:var(--font-mono);font-size:29px;letter-spacing:3px;color:var(--text-dim);">
+        <svg width="22" height="22" viewBox="0 0 12 12"><path d="M8 1 L3 6 L8 11" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
+        EXIT
+      </div>
+      ${
+        vm.hearIsPartial
+          ? `<div style="font-family:var(--font-mono);font-size:19px;color:var(--bad);letter-spacing:1px;text-align:right;">※途中で停止したため、一部の周波数は未測定です</div>`
+          : ''
+      }
+    </div>
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;">
+      <div style="display:flex;align-items:center;gap:28px;font-family:var(--font-mono);font-size:20px;color:var(--text);">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span>Name</span>
+          <input type="text" placeholder="任意" data-bind="hearReportName" style="background:var(--panel);border:1px solid var(--line);color:var(--text);font-family:var(--font-mono);font-size:20px;padding:8px 12px;border-radius:2px;outline:none;width:200px;" />
+        </div>
+        <div>測定日 ${vm.hearReportDate}</div>
+        <button data-action="printHearingReport" class="eg-btn-pdf" style="background:transparent;padding:10px 24px;border-radius:2px;font-weight:700;letter-spacing:2px;font-size:18px;cursor:pointer;transition:border-color 0.15s ease, color 0.15s ease;">PDFで保存</button>
+      </div>
+      <div style="width:${MOBILE_GRAPH_W * MOBILE_GRAPH_SCALE}px;height:${MOBILE_GRAPH_H * MOBILE_GRAPH_SCALE}px;overflow:visible;">
+        <div style="width:${MOBILE_GRAPH_W}px;transform:scale(${MOBILE_GRAPH_SCALE});transform-origin:top left;">
+          ${renderHearGraphBlock(vm)}
+        </div>
+      </div>
+      <div style="display:flex;justify-content:center;gap:28px;font-family:var(--font-mono);font-size:20px;color:var(--text-dim);">
+        <div style="display:flex;align-items:center;gap:8px;"><span style="width:12px;height:12px;border-radius:50%;border:2px solid var(--bad);display:inline-block;"></span>右耳</div>
+        <div style="display:flex;align-items:center;gap:8px;"><span style="width:12px;height:12px;border:2px solid var(--ear-l);display:inline-block;transform:rotate(45deg);"></span>左耳</div>
+      </div>
+      <div style="font-family:var(--font-mono);font-size:15px;letter-spacing:-0.2px;color:var(--text-dim);white-space:nowrap;">※相対値による簡易チェックです。絶対的な聴力レベル(dB HL)ではなく、使用機器での聞こえ方の左右差・帯域バランスの目安としてご覧ください。医療機関の検査結果とは一致しません。</div>
+    </div>
+    <div style="height:20px;flex-shrink:0;pointer-events:none;"></div>
   </div>`;
 }
