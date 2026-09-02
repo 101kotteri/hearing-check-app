@@ -34,7 +34,6 @@ export function renderMobileOpening(): string {
 
 function renderMobileTopBar(vm?: ViewModel): string {
   const isCalibrate = vm?.isHearCalibrate ?? false;
-  const showStop = vm?.hearShowStop ?? false;
   const backAction = isCalibrate ? 'goBackToHearSetup' : 'goToGate';
   const backLabel = isCalibrate ? '戻る' : 'EXIT';
   return `
@@ -43,11 +42,6 @@ function renderMobileTopBar(vm?: ViewModel): string {
       <svg width="22" height="22" viewBox="0 0 12 12"><path d="M8 1 L3 6 L8 11" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
       ${backLabel}
     </div>
-    ${
-      showStop
-        ? `<div data-action="stopHearingTest" class="eg-link" style="cursor:pointer;font-family:var(--font-mono);font-size:24px;letter-spacing:2px;color:var(--bad);">■ 緊急停止</div>`
-        : ''
-    }
   </div>`;
 }
 
@@ -63,7 +57,7 @@ export function renderMobileIntro(): string {
   return `
   <div style="position:relative;width:100%;height:100%;display:flex;flex-direction:column;">
     ${renderMobileTopBar()}
-    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;max-width:1180px;margin:0 auto;text-align:center;padding:0 40px;">
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;max-width:1180px;margin:0 auto;text-align:center;padding:0 40px;">
       <div style="font-size:26px;font-weight:700;letter-spacing:1px;">簡易聴力チェック</div>
       <div style="font-family:var(--font-mono);font-size:23px;color:var(--text-dim);line-height:1.75;text-align:left;">
         ・ヘッドホンまたはイヤホンを装着してください<br/>
@@ -110,7 +104,7 @@ export function renderMobileSetup(vm: ViewModel): string {
   return `
   <div style="position:relative;width:100%;height:100%;display:flex;flex-direction:column;">
     ${renderMobileTopBar(vm)}
-    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;text-align:center;">
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;text-align:center;">
       <div style="font-size:26px;font-weight:700;letter-spacing:1px;">測定環境を選択してください</div>
       <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
         <div style="font-family:var(--font-mono);font-size:20px;letter-spacing:1px;color:var(--text-dim);">再生機器</div>
@@ -130,9 +124,12 @@ export function renderMobileCalibrate(vm: ViewModel): string {
   return `
   <div style="position:relative;width:100%;height:100%;display:flex;flex-direction:column;">
     ${renderMobileTopBar(vm)}
-    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;text-align:center;">
-      <div class="eg-play ${vm.hearCalPlayingClass}" style="width:110px;height:110px;border-radius:50%;background:var(--panel-2);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;">
-        ${MOBILE_PLAY_ICON}
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;text-align:center;">
+      <div style="display:flex;align-items:center;gap:28px;">
+        <div class="eg-play ${vm.hearCalPlayingClass}" style="width:110px;height:110px;border-radius:50%;background:var(--panel-2);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;">
+          ${MOBILE_PLAY_ICON}
+        </div>
+        <button data-action="stopHearingTest" class="eg-btn" style="background:var(--bad);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:20px;padding:16px 24px;cursor:pointer;border-radius:4px;">■ 緊急停止</button>
       </div>
       <div style="font-size:24px;font-weight:700;">音量を調整してください</div>
       <div style="font-family:var(--font-mono);font-size:22px;color:var(--text-dim);line-height:1.9;">
@@ -140,7 +137,7 @@ export function renderMobileCalibrate(vm: ViewModel): string {
       </div>
       <button data-action="confirmHearingCalibration" class="eg-btn" style="background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:22px;padding:16px 64px;cursor:pointer;border-radius:4px;">この音量で測定を始める</button>
     </div>
-    <div style="height:${MOBILE_TOPBAR_H + 120}px;flex-shrink:0;"></div>
+    <div style="height:${MOBILE_TOPBAR_H + 39}px;flex-shrink:0;"></div>
   </div>`;
 }
 
@@ -148,7 +145,7 @@ export function renderMobileMeasure(vm: ViewModel): string {
   return `
   <div style="position:relative;width:100%;height:100%;display:flex;flex-direction:column;">
     ${renderMobileTopBar(vm)}
-    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;">
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;">
       <div style="font-family:var(--font-mono);font-size:23px;letter-spacing:1px;color:var(--text-dim);">${
         vm.hearEarLabel
       }耳 測定中 / ${vm.hearCurrentFreqLabel}</div>
