@@ -125,11 +125,11 @@ export function renderMobileCalibrate(vm: ViewModel): string {
   <div style="position:relative;width:100%;height:100%;display:flex;flex-direction:column;">
     ${renderMobileTopBar(vm)}
     <div style="flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;text-align:center;">
-      <div style="display:flex;align-items:center;gap:28px;">
+      <div style="position:relative;">
         <div class="eg-play ${vm.hearCalPlayingClass}" style="width:110px;height:110px;border-radius:50%;background:var(--panel-2);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;">
           ${MOBILE_PLAY_ICON}
         </div>
-        <button data-action="stopHearingTest" class="eg-btn" style="background:var(--bad);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:20px;padding:16px 24px;cursor:pointer;border-radius:4px;">■ 緊急停止</button>
+        <button data-action="stopHearingTest" class="eg-btn" style="position:absolute;left:100%;top:50%;transform:translateY(-50%);margin-left:28px;white-space:nowrap;background:var(--bad);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:20px;padding:16px 24px;cursor:pointer;border-radius:4px;">■ 緊急停止</button>
       </div>
       <div style="font-size:24px;font-weight:700;">音量を調整してください</div>
       <div style="font-family:var(--font-mono);font-size:22px;color:var(--text-dim);line-height:1.9;">
