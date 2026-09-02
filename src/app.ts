@@ -1,9 +1,12 @@
 import {
   MOBILE_CHASSIS_H,
   MOBILE_CHASSIS_W,
+  MOBILE_OPENING_FRAME_H,
+  MOBILE_OPENING_FRAME_W,
   PC_CHASSIS_H,
   PC_CHASSIS_W,
   renderChassis,
+  renderMobileOpeningFrame,
   renderMobileRoot,
 } from './chassis';
 import {
@@ -115,7 +118,14 @@ export class App {
   // change — the chassis/frame-less canvas have different fixed pixel sizes
   // (see chassis.ts), so this also re-fits to the viewport.
   private mountRoot(framed: boolean): void {
-    this.rootEl.innerHTML = framed ? renderChassis() : renderMobileRoot();
+    if (framed) {
+      // PC always gets the full-width chassis; mobile's opening screen gets
+      // its own narrower, closer-to-square variant (explicitly NOT the PC
+      // chassis, which stays exactly as-is).
+      this.rootEl.innerHTML = this.isMobile ? renderMobileOpeningFrame() : renderChassis();
+    } else {
+      this.rootEl.innerHTML = renderMobileRoot();
+    }
     const screenRoot = this.rootEl.querySelector<HTMLElement>('#screen-root');
     if (!screenRoot) throw new Error('screen-root not found in mounted shell markup');
     this.screenRoot = screenRoot;
@@ -127,8 +137,8 @@ export class App {
   }
 
   private fitToScreen = (): void => {
-    const w = this.isCurrentlyFramed ? PC_CHASSIS_W : MOBILE_CHASSIS_W;
-    const h = this.isCurrentlyFramed ? PC_CHASSIS_H : MOBILE_CHASSIS_H;
+    const w = this.isCurrentlyFramed ? (this.isMobile ? MOBILE_OPENING_FRAME_W : PC_CHASSIS_W) : MOBILE_CHASSIS_W;
+    const h = this.isCurrentlyFramed ? (this.isMobile ? MOBILE_OPENING_FRAME_H : PC_CHASSIS_H) : MOBILE_CHASSIS_H;
     const scale = Math.min(window.innerWidth / w, window.innerHeight / h, 1);
     const offsetX = (window.innerWidth - w * scale) / 2;
     const offsetY = (window.innerHeight - h * scale) / 2;

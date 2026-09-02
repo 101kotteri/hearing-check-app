@@ -62,6 +62,70 @@ export function renderChassis(): string {
 export const PC_CHASSIS_W = 1504;
 export const PC_CHASSIS_H = 838;
 
+// A narrower, closer-to-square variant of the same chassis, used ONLY for
+// mobile's opening screen (per explicit direction — PC keeps renderChassis()
+// unchanged, at PC_CHASSIS_W/H, exactly as before). Same height as the PC
+// chassis; width trimmed way down. Since the opening screen's own content
+// (mobileTemplates.ts's renderMobileOpening) is flex-centered and percentage-
+// sized rather than assuming a fixed 1440-wide canvas, #screen-root fills the
+// bezel directly here — no nested "scale 1440x630 down to fit" indirection.
+export const MOBILE_OPENING_FRAME_W = 1100;
+export const MOBILE_OPENING_FRAME_H = 838;
+
+export function renderMobileOpeningFrame(): string {
+  const buttons = Array.from({ length: 12 }, () => `<div style="${BUTTON_STYLE}"></div>`).join('');
+  const knobAngles = [-30, 10, 45];
+  const knobs = knobAngles
+    .map(
+      (deg) =>
+        `<div style="width:54px;height:54px;border-radius:50%;background:radial-gradient(circle at 35% 30%, oklch(0.97 0.004 250), oklch(0.74 0.01 250) 80%);border:1px solid oklch(0.6 0.012 250);box-shadow:0 4px 0 oklch(0.5 0.015 250), 0 7px 9px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,255,255,0.85);position:relative;">
+          <div style="${knobStyle(deg)}"></div>
+        </div>`
+    )
+    .join('');
+
+  const w = MOBILE_OPENING_FRAME_W;
+  const bezelLeft = 90;
+  const bezelW = w - bezelLeft * 2;
+  const dividerLeft = 277;
+  const dividerW = bezelW - (dividerLeft - bezelLeft) * 2;
+
+  return `
+  <div id="app-shell" style="width:${w}px;height:${MOBILE_OPENING_FRAME_H}px;background:linear-gradient(150deg, var(--frame-1) 0%, var(--frame-2) 65%, oklch(0.27 0.06 270) 100%);position:relative;border-radius:26px;box-shadow:0 24px 70px rgba(0,0,0,0.5), inset 0 2px 0 oklch(0.75 0.03 260 / 0.3), inset 0 -8px 16px rgba(0,0,0,0.42), inset 8px 0 16px rgba(0,0,0,0.16), inset -8px 0 16px rgba(0,0,0,0.16);font-family:var(--font-display);">
+    <div style="position:absolute;inset:0;background:radial-gradient(ellipse 700px 400px at 18% 0%, oklch(0.5 0.03 240 / 0.22), transparent 60%);border-radius:26px;pointer-events:none;"></div>
+    <div style="position:absolute;inset:0;background:radial-gradient(ellipse 480px 260px at 93% 4%, oklch(0.75 0.02 260 / 0.11), transparent 55%);border-radius:26px;pointer-events:none;"></div>
+    <div style="position:absolute;inset:0;background:radial-gradient(ellipse 420px 220px at 5% 97%, oklch(0.68 0.02 260 / 0.08), transparent 55%);border-radius:26px;pointer-events:none;"></div>
+    <div style="position:absolute;inset:0;border-radius:26px;border:1px solid oklch(0.5 0.02 240 / 0.18);pointer-events:none;"></div>
+
+    <div style="position:absolute;top:26px;left:34px;display:flex;align-items:center;gap:10px;pointer-events:none;">
+      <div style="width:9px;height:9px;border-radius:50%;background:var(--frame-led);box-shadow:0 0 8px 2px oklch(0.78 0.13 220 / 0.65);"></div>
+      <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:3px;color:var(--frame-dim);">READY</div>
+    </div>
+
+    <div style="position:absolute;bottom:24px;right:40px;text-align:right;pointer-events:none;">
+      <div style="font-size:17px;font-weight:700;letter-spacing:3px;color:var(--frame-text);">HEARING CHECK</div>
+      <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:2.5px;color:var(--frame-dim);margin-top:2px;">MODEL HC-1 · AUDIOMETRIC SELF-TEST</div>
+    </div>
+
+    <div style="position:absolute;top:50px;left:${bezelLeft}px;width:${bezelW}px;height:595px;background:var(--frame-bezel);border-radius:16px;box-shadow:inset 0 6px 20px rgba(0,0,0,0.9), inset 0 -5px 15px rgba(0,0,0,0.7), inset 6px 0 15px rgba(0,0,0,0.6), inset -6px 0 15px rgba(0,0,0,0.6), 0 1px 0 oklch(0.5 0.03 240 / 0.15), 0 0 28px 8px rgba(0,0,0,0.55);padding:14px;overflow:hidden;">
+      <div style="width:100%;height:100%;overflow:hidden;border-radius:6px;position:relative;background:var(--bg);color:var(--text);font-family:var(--font-display);">
+        <div style="position:absolute;inset:0;background-image:repeating-linear-gradient(0deg, transparent, transparent 39px, var(--line) 40px), repeating-linear-gradient(90deg, transparent, transparent 39px, var(--line) 40px);opacity:0.2;pointer-events:none;"></div>
+
+        <div id="screen-root" style="position:relative;width:100%;height:100%;"></div>
+
+        <div style="position:absolute;inset:0;pointer-events:none;background-image:repeating-linear-gradient(0deg, rgba(255,255,255,0.014) 0px, rgba(255,255,255,0.014) 1px, transparent 1px, transparent 3px);"></div>
+        <div style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(135deg, rgba(255,255,255,0.045) 0%, transparent 32%);"></div>
+      </div>
+    </div>
+
+    <div style="position:absolute;top:657px;left:${dividerLeft}px;width:${dividerW}px;height:1px;background:oklch(0.5 0.02 240 / 0.25);pointer-events:none;"></div>
+
+    <div style="position:absolute;top:677px;left:0;width:${w}px;display:flex;justify-content:center;gap:9px;pointer-events:none;">${buttons}</div>
+
+    <div style="position:absolute;top:714px;left:0;width:${w}px;display:flex;justify-content:center;align-items:center;gap:60px;pointer-events:none;">${knobs}</div>
+  </div>`;
+}
+
 // The mobile app has no decorative casing (per direction: opening screen keeps
 // the frame, everything after it is frame-less) — just the same 1440x630
 // screen canvas every template already assumes, at native 1:1 scale, with
