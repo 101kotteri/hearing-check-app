@@ -603,6 +603,12 @@ export class App {
 
   private stopHearingTest(): void {
     this.stopHearingAudio();
+    if (this.state.hearStep === 'calibrate') {
+      // No measurement data exists yet at this step, so there's nothing
+      // meaningful to show on a results screen — go back to setup instead.
+      this.setState({ hearStep: 'setup' });
+      return;
+    }
     if (this.state.hearStep === 'measure') {
       const freq = this.currentHearingFreq();
       const ear = this.state.hearEar;

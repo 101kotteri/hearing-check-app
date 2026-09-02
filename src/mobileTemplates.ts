@@ -50,7 +50,11 @@ function renderMobileTopBar(vm?: ViewModel): string {
 // whatever space happens to be left under the top bar (which reads as
 // "sitting too low" — the top bar alone eats space asymmetrically).
 function renderMobileBottomSpacer(): string {
-  return `<div style="height:${MOBILE_TOPBAR_H}px;flex-shrink:0;"></div>`;
+  // pointer-events:none defensively: if content ever overflows its allotted
+  // space (a real bug hit once already — see memory notes on the calibrate
+  // screen's min-height:auto overflow), this purely-decorative spacer must
+  // never be able to sit on top of and swallow clicks meant for real content.
+  return `<div style="height:${MOBILE_TOPBAR_H}px;flex-shrink:0;pointer-events:none;"></div>`;
 }
 
 export function renderMobileIntro(): string {
