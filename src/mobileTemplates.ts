@@ -195,7 +195,7 @@ export function renderMobileDone(vm: ViewModel): string {
           <input type="text" placeholder="任意" data-bind="hearReportName" style="background:var(--panel);border:1px solid var(--line);color:var(--text);font-family:var(--font-mono);font-size:20px;padding:8px 12px;border-radius:2px;outline:none;width:200px;" />
         </div>
         <div>測定日 ${vm.hearReportDate}</div>
-        <button data-action="printHearingReport" class="eg-btn-pdf" style="background:transparent;padding:10px 24px;border-radius:2px;font-weight:700;letter-spacing:2px;font-size:18px;cursor:pointer;transition:border-color 0.15s ease, color 0.15s ease;">PDFで保存</button>
+        <button data-action="printHearingReport" class="eg-btn-pdf" style="background:transparent;border:1px solid var(--accent);color:var(--accent);padding:10px 24px;border-radius:2px;font-weight:700;letter-spacing:2px;font-size:18px;cursor:pointer;transition:border-color 0.15s ease, color 0.15s ease;">PDFで保存</button>
       </div>
       <div style="width:${MOBILE_GRAPH_W * MOBILE_GRAPH_SCALE}px;height:${MOBILE_GRAPH_H * MOBILE_GRAPH_SCALE}px;overflow:visible;">
         <div style="width:${MOBILE_GRAPH_W}px;transform:scale(${MOBILE_GRAPH_SCALE});transform-origin:top left;">
