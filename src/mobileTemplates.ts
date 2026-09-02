@@ -27,7 +27,7 @@ export function renderMobileOpening(): string {
 function renderMobileTopBar(): string {
   return `
   <div style="display:flex;align-items:center;padding:40px 48px 0;">
-    <div data-action="goToGate" class="eg-link" style="cursor:pointer;display:flex;align-items:center;gap:14px;font-family:var(--font-mono);font-size:28px;letter-spacing:3px;color:var(--text-dim);">
+    <div data-action="goToGate" class="eg-link" style="cursor:pointer;display:flex;align-items:center;gap:14px;font-family:var(--font-mono);font-size:29px;letter-spacing:3px;color:var(--text-dim);">
       <svg width="22" height="22" viewBox="0 0 12 12"><path d="M8 1 L3 6 L8 11" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
       EXIT
     </div>
@@ -40,7 +40,7 @@ export function renderMobileIntro(): string {
     ${renderMobileTopBar()}
     <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;max-width:1180px;margin:0 auto;text-align:center;padding:0 40px;">
       <div style="font-size:26px;font-weight:700;letter-spacing:1px;">簡易聴力チェック</div>
-      <div style="font-family:var(--font-mono);font-size:22px;color:var(--text-dim);line-height:1.75;text-align:left;">
+      <div style="font-family:var(--font-mono);font-size:23px;color:var(--text-dim);line-height:1.75;text-align:left;">
         ・ヘッドホンまたはイヤホンを装着してください<br/>
         ・右耳→左耳の順に、低い音から高い音まで自動で測定します<br/>
         ・音が聞こえたら「聞こえたら押す」ボタンを押してください<br/>
@@ -48,7 +48,7 @@ export function renderMobileIntro(): string {
         ・所要時間の目安は3〜5分です<br/>
         ・体調に異変を感じたら、いつでも「緊急停止」で中断できます
       </div>
-      <div style="font-family:var(--font-mono);font-size:18px;color:var(--text-dim);line-height:1.6;">※使用機器の音量設定に依存する相対的な簡易チェックです。医療機関の聴力検査の代わりにはなりません。</div>
+      <div style="font-family:var(--font-mono);font-size:19px;color:var(--text-dim);line-height:1.6;">※使用機器の音量設定に依存する相対的な簡易チェックです。医療機関の聴力検査の代わりにはなりません。</div>
       <button data-action="goToHearSetup" class="eg-btn" style="background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:22px;padding:16px 64px;cursor:pointer;border-radius:4px;">はじめる</button>
     </div>
   </div>`;
