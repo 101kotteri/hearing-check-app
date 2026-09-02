@@ -16,7 +16,7 @@ import {
   HEARING_STEP_SMALL,
   HEARING_TEST_ORDER,
 } from './constants';
-import { renderScreenContent } from './templates';
+import { renderPrintReport, renderScreenContent } from './templates';
 import type { AppState, DeviceType, ListeningType } from './types';
 import { createInitialHearingState, createInitialState } from './types';
 import { computeViewModel } from './viewModel';
@@ -26,6 +26,7 @@ type HearDirection = 'descend' | 'ascend';
 export class App {
   private state: AppState = createInitialState();
   private screenRoot: HTMLElement;
+  private printRoot: HTMLElement;
 
   private audioCtx: AudioContext | null = null;
   private hearOsc: OscillatorNode | null = null;
@@ -47,6 +48,14 @@ export class App {
     if (!screenRoot) throw new Error('screen-root not found in chassis markup');
     this.screenRoot = screenRoot;
 
+    // A body-level sibling of the chassis, not a descendant of it — the print
+    // report must live outside the chassis's scaled/clipped wrapper hierarchy
+    // (see chassis.ts) so print layout isn't affected by that hierarchy's
+    // transform/overflow, and so hiding the chassis for print is one line.
+    this.printRoot = document.createElement('div');
+    this.printRoot.id = 'print-root';
+    document.body.appendChild(this.printRoot);
+
     this.screenRoot.addEventListener('click', this.handleClick);
     this.screenRoot.addEventListener('input', this.handleInput);
     this.screenRoot.addEventListener('keydown', this.handleFieldKeyDown);
@@ -63,6 +72,7 @@ export class App {
   private render(): void {
     const vm = computeViewModel(this.state);
     this.screenRoot.innerHTML = renderScreenContent(this.state, vm);
+    this.printRoot.innerHTML = vm.isHearDone ? renderPrintReport(vm) : '';
   }
 
   // ---- event delegation -------------------------------------------------

@@ -90,23 +90,37 @@ button {
   animation: eg-hear-breathe 3.6s ease-in-out infinite;
 }
 
+#print-root {
+  display: none;
+}
 .eg-print-report {
   display: none;
 }
 @media print {
-  body * {
-    visibility: hidden;
+  /* The audiogram graph is wider than it is tall (900px+), so print landscape
+     rather than clipping it against a narrower portrait page. */
+  @page {
+    size: landscape;
+    margin: 10mm;
   }
-  .eg-print-report,
-  .eg-print-report * {
-    visibility: visible;
+  html,
+  body {
+    background: #fff;
+    display: block;
+    min-height: 0;
+  }
+  #app {
+    display: none;
+  }
+  #print-root {
+    display: block;
   }
   .eg-print-report {
     display: block;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
+    width: 964px;
+    max-width: 100%;
+    margin: 0 auto;
+    box-sizing: border-box;
   }
 }
 

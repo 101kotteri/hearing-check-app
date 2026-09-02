@@ -171,7 +171,6 @@ function renderHearDone(vm: ViewModel): string {
   const dbTicksLeft = vm.hearDbTicks
     .map((t) => `<div style="position:absolute;top:${t.y}px;left:0;transform:translateY(-50%);">${t.label}</div>`)
     .join('');
-  const dbTicksLeftPrint = dbTicksLeft;
   const gridVLines = vm.hearGraph.graphTicks
     .map((t) => `<div style="position:absolute;left:${t.x}px;top:0;bottom:0;width:1px;background:var(--line);opacity:0.4;"></div>`)
     .join('');
@@ -216,7 +215,55 @@ function renderHearDone(vm: ViewModel): string {
     )
     .join('');
 
-  // Print report reuses the same 63Hz-16kHz graph data as the on-screen graph.
+  return `
+  <div style="flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;align-items:center;gap:18px;padding:8px 0 16px;">
+    <div style="font-family:var(--font-mono);font-size:13px;letter-spacing:4px;color:var(--text-dim);">測定結果</div>
+    ${
+      vm.hearIsPartial
+        ? `<div style="font-family:var(--font-mono);font-size:11px;color:var(--bad);letter-spacing:1px;">※途中で停止したため、一部の周波数は未測定です</div>`
+        : ''
+    }
+    <div style="display:flex;align-items:center;gap:24px;font-family:var(--font-mono);font-size:15px;color:var(--text);">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span>Name</span>
+        <input type="text" placeholder="任意" data-bind="hearReportName" style="background:var(--panel);border:1px solid var(--line);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:8px 10px;border-radius:2px;outline:none;width:160px;" />
+      </div>
+      <div>測定日 ${vm.hearReportDate}</div>
+      <button data-action="printHearingReport" class="eg-btn-pdf" style="background:transparent;padding:10px 24px;border-radius:2px;font-weight:700;letter-spacing:2px;font-size:12px;cursor:pointer;transition:border-color 0.15s ease, color 0.15s ease;">PDFで保存</button>
+    </div>
+    <div style="width:900px;">
+      <div style="display:flex;">
+        <div style="width:40px;height:280px;position:relative;font-family:var(--font-mono);font-size:9px;color:var(--text-dim);">${dbTicksLeft}</div>
+        <div style="flex:1;height:280px;position:relative;background:var(--panel);border:1px solid var(--line);border-radius:4px;overflow:hidden;">
+          ${gridVLines}
+          ${gridHLines}
+          <div style="position:absolute;left:0;top:${vm.hearRefLineY}px;width:100%;height:1px;background:var(--accent);opacity:0.5;"></div>
+          <svg width="860" height="280" viewBox="0 0 860 280" style="position:absolute;top:0;left:0;pointer-events:none;">
+            <path d="${vm.hearGraph.rightPath}" stroke="var(--bad)" stroke-width="2" fill="none"/>
+            <path d="${vm.hearGraph.leftPath}" stroke="var(--ear-l)" stroke-width="2" fill="none"/>
+          </svg>
+          ${rightPoints}
+          ${leftPoints}
+        </div>
+      </div>
+      <div style="margin-left:40px;position:relative;height:14px;margin-top:6px;">${axisLabelsBottom}</div>
+    </div>
+    <div style="display:flex;justify-content:center;gap:24px;font-family:var(--font-mono);font-size:11px;color:var(--text-dim);">
+      <div style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;border:2px solid var(--bad);display:inline-block;"></span>右耳</div>
+      <div style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border:2px solid var(--ear-l);display:inline-block;transform:rotate(45deg);"></span>左耳</div>
+    </div>
+    <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);max-width:700px;text-align:center;line-height:1.8;">※相対値による簡易チェックです。絶対的な聴力レベル(dB HL)ではなく、使用機器での聞こえ方の左右差・帯域バランスの目安としてご覧ください。医療機関の検査結果とは一致しません。</div>
+  </div>`;
+}
+
+// Rendered into a top-level #print-root element, OUTSIDE the chassis's scaled/
+// clipped wrapper hierarchy (see chassis.ts) — printing it from inside that
+// hierarchy left leftover chassis background/backgrop and mis-scoped
+// position:absolute coordinates. This is a plain, unscaled, unclipped element.
+export function renderPrintReport(vm: ViewModel): string {
+  const dbTicksLeftPrint = vm.hearDbTicks
+    .map((t) => `<div style="position:absolute;top:${t.y}px;left:0;transform:translateY(-50%);">${t.label}</div>`)
+    .join('');
   const printGridV = vm.hearGraph.graphTicks
     .map((t) => `<div style="position:absolute;left:${t.x}px;top:0;bottom:0;width:1px;background:#e0e0e0;"></div>`)
     .join('');
@@ -256,45 +303,6 @@ function renderHearDone(vm: ViewModel): string {
     .join('');
 
   return `
-  <div style="flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;align-items:center;gap:18px;padding:8px 0 16px;">
-    <div style="font-family:var(--font-mono);font-size:13px;letter-spacing:4px;color:var(--text-dim);">測定結果</div>
-    ${
-      vm.hearIsPartial
-        ? `<div style="font-family:var(--font-mono);font-size:11px;color:var(--bad);letter-spacing:1px;">※途中で停止したため、一部の周波数は未測定です</div>`
-        : ''
-    }
-    <div style="display:flex;align-items:center;gap:24px;font-family:var(--font-mono);font-size:15px;color:var(--text);">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span>Name</span>
-        <input type="text" placeholder="任意" data-bind="hearReportName" style="background:var(--panel);border:1px solid var(--line);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:8px 10px;border-radius:2px;outline:none;width:160px;" />
-      </div>
-      <div>測定日 ${vm.hearReportDate}</div>
-      <button data-action="printHearingReport" class="eg-btn-pdf" style="background:transparent;padding:10px 24px;border-radius:2px;font-weight:700;letter-spacing:2px;font-size:12px;cursor:pointer;transition:border-color 0.15s ease, color 0.15s ease;">PDFで保存</button>
-    </div>
-    <div style="width:900px;">
-      <div style="display:flex;">
-        <div style="width:40px;height:280px;position:relative;font-family:var(--font-mono);font-size:9px;color:var(--text-dim);">${dbTicksLeft}</div>
-        <div style="flex:1;height:280px;position:relative;background:var(--panel);border:1px solid var(--line);border-radius:4px;overflow:hidden;">
-          ${gridVLines}
-          ${gridHLines}
-          <div style="position:absolute;left:0;top:${vm.hearRefLineY}px;width:100%;height:1px;background:var(--accent);opacity:0.5;"></div>
-          <svg width="860" height="280" viewBox="0 0 860 280" style="position:absolute;top:0;left:0;pointer-events:none;">
-            <path d="${vm.hearGraph.rightPath}" stroke="var(--bad)" stroke-width="2" fill="none"/>
-            <path d="${vm.hearGraph.leftPath}" stroke="var(--ear-l)" stroke-width="2" fill="none"/>
-          </svg>
-          ${rightPoints}
-          ${leftPoints}
-        </div>
-      </div>
-      <div style="margin-left:40px;position:relative;height:14px;margin-top:6px;">${axisLabelsBottom}</div>
-    </div>
-    <div style="display:flex;justify-content:center;gap:24px;font-family:var(--font-mono);font-size:11px;color:var(--text-dim);">
-      <div style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;border:2px solid var(--bad);display:inline-block;"></span>右耳</div>
-      <div style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border:2px solid var(--ear-l);display:inline-block;transform:rotate(45deg);"></span>左耳</div>
-    </div>
-    <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);max-width:700px;text-align:center;line-height:1.8;">※相対値による簡易チェックです。絶対的な聴力レベル(dB HL)ではなく、使用機器での聞こえ方の左右差・帯域バランスの目安としてご覧ください。医療機関の検査結果とは一致しません。</div>
-  </div>
-
   <div class="eg-print-report" style="background:#ffffff;color:#111111;font-family:var(--font-mono);padding:32px;">
     <div style="font-size:20px;font-weight:700;letter-spacing:2px;margin-bottom:4px;">聴力チェック 測定結果</div>
     <div style="font-size:11px;color:#666;letter-spacing:1px;margin-bottom:20px;">HEARING CHECK 簡易セルフチェック（相対値）</div>
