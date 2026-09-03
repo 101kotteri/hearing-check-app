@@ -91,9 +91,34 @@ function renderHearTopBar(vm: ViewModel): string {
     // 緊急停止 during calibrate moved out of the top bar and onto a solid
     // button beside the play circle (see renderHearCalibrate) — same design
     // and placement as the phone UI — so this row never shows it, unlike PC.
+    // 測定結果 (+ the partial-results warning) moved up here from the
+    // results screen's own content, per explicit request that it sit at the
+    // same height as EXIT — align-items:center on this row does that for
+    // free. renderHearDone no longer renders its own copy for tablet (see
+    // resultHeader there).
+    const resultTitle = vm.isHearDone
+      ? `<div style="position:relative;margin-left:${ts(vm, 28)}px;">
+          <span style="font-family:var(--font-mono);font-size:${ts(
+            vm,
+            13
+          )}px;letter-spacing:4px;color:var(--text-dim);white-space:nowrap;">測定結果</span>
+          ${
+            vm.hearIsPartial
+              ? `<span style="position:absolute;left:100%;top:50%;transform:translateY(-50%);margin-left:${ts(
+                  vm,
+                  32
+                )}px;white-space:nowrap;font-family:var(--font-mono);font-size:${ts(
+                  vm,
+                  11
+                )}px;color:var(--bad);letter-spacing:1px;">※途中で停止したため、一部の周波数は未測定です</span>`
+              : ''
+          }
+        </div>`
+      : '';
     return `
     <div style="display:flex;align-items:center;margin-bottom:22px;">
       ${renderRaisedBackButton(backAction, backLabel)}
+      ${resultTitle}
     </div>`;
   }
 
@@ -380,7 +405,7 @@ export function renderHearGraphBlock(vm: ViewModel): string {
 // slightly vertically stretched at this ratio — minor at this scale gap,
 // but worth knowing if it's ever revisited.
 const TABLET_GRAPH_SCALE_X = 1.35;
-const TABLET_GRAPH_SCALE_Y = 1.68;
+const TABLET_GRAPH_SCALE_Y = 1.82;
 const TABLET_GRAPH_W = 900;
 const TABLET_GRAPH_H = 300;
 
@@ -395,30 +420,12 @@ function renderHearDone(vm: ViewModel): string {
       </div>`
     : renderHearGraphBlock(vm);
 
-  // iPad: 測定結果 stays truly centered (the warning is absolutely
-  // positioned off to its right, so it contributes zero width to the
-  // shrink-wrapped wrapper the parent's align-items:center centers — a
-  // flex-row approach centered the PAIR as a block instead, pulling 測定結果
-  // itself off-center whenever a warning was present, per direct feedback).
-  // PC keeps its original two-line stacked layout exactly.
+  // iPad: 測定結果 (+ partial-results warning) moved up into the top bar,
+  // next to EXIT (see renderHearTopBar) — per explicit request that it sit
+  // at the same height as EXIT — so nothing renders here for tablet. PC
+  // keeps its original two-line stacked layout exactly.
   const resultHeader = vm.isTablet
-    ? `<div style="position:relative;">
-        <span style="font-family:var(--font-mono);font-size:${ts(
-          vm,
-          13
-        )}px;letter-spacing:4px;color:var(--text-dim);white-space:nowrap;">測定結果</span>
-        ${
-          vm.hearIsPartial
-            ? `<span style="position:absolute;left:100%;top:50%;transform:translateY(-50%);margin-left:${ts(
-                vm,
-                78
-              )}px;white-space:nowrap;font-family:var(--font-mono);font-size:${ts(
-                vm,
-                11
-              )}px;color:var(--bad);letter-spacing:1px;">※途中で停止したため、一部の周波数は未測定です</span>`
-            : ''
-        }
-      </div>`
+    ? ''
     : `<div style="font-family:var(--font-mono);font-size:13px;letter-spacing:4px;color:var(--text-dim);">測定結果</div>
     ${
       vm.hearIsPartial
