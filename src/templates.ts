@@ -378,7 +378,7 @@ export function renderHearGraphBlock(vm: ViewModel): string {
 // slightly vertically stretched at this ratio — minor at this scale gap,
 // but worth knowing if it's ever revisited.
 const TABLET_GRAPH_SCALE_X = 1.35;
-const TABLET_GRAPH_SCALE_Y = 1.62;
+const TABLET_GRAPH_SCALE_Y = 1.6;
 const TABLET_GRAPH_W = 900;
 const TABLET_GRAPH_H = 300;
 
@@ -424,10 +424,20 @@ function renderHearDone(vm: ViewModel): string {
         : ''
     }`;
 
+  // Real bug, same class as an earlier phone-screen one: this container was
+  // missing justify-content:center the whole time (only align-items:center
+  // was set, which is the CROSS axis — horizontal — in a column flex
+  // container; the MAIN/vertical axis defaults to flex-start). Every "grow
+  // the graph to push Name/測定結果 up" change this round actually did
+  // nothing to their position — with no vertical centering, content earlier
+  // in the DOM than the graph can never be pushed by something growing
+  // AFTER it; only the graph's own height and whatever comes after it
+  // (legend/disclaimer) were ever moving. PC's own top-aligned/scrollable
+  // behavior is intentional and untouched — this is tablet-only.
   return `
-  <div style="flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;align-items:center;gap:${
-    vm.isTablet ? ts(vm, 8) : 18
-  }px;padding:${vm.isTablet ? '4px 0 8px' : '8px 0 16px'};">
+  <div style="flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;align-items:center;${
+    vm.isTablet ? 'justify-content:center;' : ''
+  }gap:${vm.isTablet ? ts(vm, 8) : 18}px;padding:${vm.isTablet ? '4px 0 8px' : '8px 0 16px'};">
     ${resultHeader}
     <div style="display:flex;align-items:center;gap:${ts(vm, 24)}px;font-family:var(--font-mono);font-size:${ts(
     vm,
