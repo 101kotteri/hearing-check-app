@@ -17,9 +17,14 @@ const forceTablet = params.has('ipad');
 // default (Apple wants iPad to get the desktop web, not a phone-scaled one),
 // so "iPad" won't appear in navigator.userAgent on a real modern iPad. The
 // standard workaround: a real Mac reports 0 touch points, but an iPad-as-Mac
-// UA still reports several — that combination reliably means "this is
+// UA reports a nonzero count — that combination reliably means "this is
 // actually an iPad", not a desktop with a touchscreen (vanishingly rare).
-const isIPadUA = /iPad/i.test(navigator.userAgent) || (/Macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+// Threshold is `> 0`, not `> 1`: a real iPad reports 5, but Chrome DevTools'
+// own device-toolbar iPad presets (confirmed directly: "iPad Air" sends the
+// Mac UA above with maxTouchPoints only 1, not a realistic 5) would fail a
+// `> 1` check and silently fall through to the PC path — this is the
+// intended way to test this in DevTools, so it has to actually work there.
+const isIPadUA = /iPad/i.test(navigator.userAgent) || (/Macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints > 0);
 const isPhoneUA = /iPhone|iPod|Android/i.test(navigator.userAgent);
 
 const isTablet = forceTablet || (isIPadUA && !forceMobile);
