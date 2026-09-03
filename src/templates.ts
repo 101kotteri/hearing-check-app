@@ -378,7 +378,7 @@ export function renderHearGraphBlock(vm: ViewModel): string {
 // slightly vertically stretched at this ratio — minor at this scale gap,
 // but worth knowing if it's ever revisited.
 const TABLET_GRAPH_SCALE_X = 1.35;
-const TABLET_GRAPH_SCALE_Y = 1.6;
+const TABLET_GRAPH_SCALE_Y = 1.68;
 const TABLET_GRAPH_W = 900;
 const TABLET_GRAPH_H = 300;
 
@@ -437,7 +437,7 @@ function renderHearDone(vm: ViewModel): string {
   return `
   <div style="flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;align-items:center;${
     vm.isTablet ? 'justify-content:center;' : ''
-  }gap:${vm.isTablet ? ts(vm, 8) : 18}px;padding:${vm.isTablet ? '4px 0 8px' : '8px 0 16px'};">
+  }gap:${vm.isTablet ? ts(vm, 5) : 18}px;padding:${vm.isTablet ? '2px 0 4px' : '8px 0 16px'};">
     ${resultHeader}
     <div style="display:flex;align-items:center;gap:${ts(vm, 24)}px;font-family:var(--font-mono);font-size:${ts(
     vm,
