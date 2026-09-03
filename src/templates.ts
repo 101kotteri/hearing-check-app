@@ -121,7 +121,7 @@ function renderHearIntro(vm: ViewModel): string {
     )}px;color:var(--text-dim);line-height:2.1;text-align:left;">
       ・ヘッドホンまたはイヤホンを装着してください<br/>
       ・右耳→左耳の順に、低い音から高い音まで自動で測定します<br/>
-      ・音が聞こえたら「聞こえたら押す（Spaceキー）」ボタンを押してください<br/>
+      ・音が聞こえたら「聞こえたら押す${vm.isTablet ? '' : '（Spaceキー）'}」ボタンを押してください<br/>
       ・聞こえない場合は何もしなくて大丈夫です（自動的に次に進みます）<br/>
       ・所要時間の目安は3〜5分です<br/>
       ・体調に異変を感じたら、いつでも「緊急停止」で中断できます
@@ -283,7 +283,9 @@ function renderHearMeasure(vm: ViewModel): string {
       }" style="background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:${ts(
     vm,
     14
-  )}px;padding:${ts(vm, 16)}px 0;width:${ts(vm, 260)}px;cursor:pointer;border-radius:2px;">聞こえたら押す（Spaceキー）</button>
+  )}px;padding:${ts(vm, 16)}px 0;width:${ts(vm, 260)}px;cursor:pointer;border-radius:2px;">聞こえたら押す${
+    vm.isTablet ? '' : '（Spaceキー）'
+  }</button>
       <button data-action="stopHearingTest" class="eg-btn" style="background:var(--bad);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:${ts(
         vm,
         14
