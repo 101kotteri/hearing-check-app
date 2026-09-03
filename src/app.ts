@@ -92,9 +92,14 @@ export class App {
   private openingTimer1: number | undefined;
   private openingTimer2: number | undefined;
 
-  constructor(root: HTMLElement, isMobile: boolean) {
+  constructor(root: HTMLElement, isMobile: boolean, isTablet: boolean = false) {
     this.isMobile = isMobile;
-    this.state = createInitialState(isMobile);
+    // Tablet deliberately does NOT set isMobile — it follows the PC chassis/
+    // fit/mount path throughout this class (framed always, gate screen, no
+    // back-btn-overlay, etc.) and only differs at the template level (see
+    // templates.ts's vm.isTablet branches), per explicit direction to base
+    // it on the PC version rather than the phone's frame-less mobile UI.
+    this.state = createInitialState(isMobile, isTablet);
     this.rootEl = root;
 
     // A body-level sibling of the chassis, not a descendant of it — the print

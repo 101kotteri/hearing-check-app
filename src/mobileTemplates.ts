@@ -6,7 +6,13 @@
 // 26px, mono body 23px, buttons 22px, EXIT 29px) per explicit direction to keep
 // the rest of the flow visually consistent with it, not just individually "big".
 
-import { CALIBRATE_BREATHE_CYCLE_MS, breatheDelayStyle, escapeHtml, renderHearGraphBlock } from './templates';
+import {
+  CALIBRATE_BREATHE_CYCLE_MS,
+  breatheDelayStyle,
+  escapeHtml,
+  renderHearGraphBlock,
+  renderRaisedBackButton,
+} from './templates';
 import type { ViewModel } from './viewModel';
 
 const MOBILE_TOPBAR_H = 90;
@@ -32,18 +38,6 @@ export function renderMobileOpening(): string {
   </div>`;
 }
 
-// Shared "raised" back/EXIT button — same markup everywhere it appears (the
-// explanation screen, setup, calibrate's 戻る, measure's EXIT, and the results
-// screen's EXIT) so position and styling stay identical across the whole flow,
-// per explicit request.
-function renderMobileBackButton(action: string, label: string): string {
-  return `
-  <div data-action="${action}" class="eg-back-btn">
-    <svg width="18" height="18" viewBox="0 0 12 12"><path d="M8 1 L3 6 L8 11" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
-    ${label}
-  </div>`;
-}
-
 // Standalone version of the top bar's button row, for app.ts to mount into a
 // body-level overlay positioned with the frame-less canvas's own fit math —
 // calibrate/measure render inside the decorative frame's bezel, which sits at
@@ -59,7 +53,7 @@ function renderMobileBackButton(action: string, label: string): string {
 export function renderMobileBackButtonOverlay(action: string, label: string): string {
   return `
   <div style="height:${MOBILE_TOPBAR_H}px;box-sizing:border-box;display:flex;align-items:center;padding:0 48px 0 24px;">
-    ${renderMobileBackButton(action, label)}
+    ${renderRaisedBackButton(action, label)}
   </div>`;
 }
 
@@ -77,7 +71,7 @@ function renderMobileTopBar(vm?: ViewModel): string {
   const backLabel = 'EXIT';
   return `
   <div style="height:${MOBILE_TOPBAR_H}px;flex-shrink:0;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;padding:0 48px 0 24px;">
-    ${renderMobileBackButton(backAction, backLabel)}
+    ${renderRaisedBackButton(backAction, backLabel)}
   </div>`;
 }
 
@@ -217,7 +211,7 @@ export function renderMobileDone(vm: ViewModel): string {
   return `
   <div style="position:relative;width:100%;height:100%;display:flex;flex-direction:column;">
     <div style="position:relative;height:${MOBILE_TOPBAR_H}px;flex-shrink:0;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;padding:0 48px 0 24px;">
-      ${renderMobileBackButton('goToGate', 'EXIT')}
+      ${renderRaisedBackButton('goToGate', 'EXIT')}
       <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:26px;font-weight:700;letter-spacing:1px;">測定結果</div>
       ${
         vm.hearIsPartial

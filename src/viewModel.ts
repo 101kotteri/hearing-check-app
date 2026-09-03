@@ -46,6 +46,7 @@ export interface HearGraphData {
 
 export interface ViewModel {
   isGate: boolean;
+  isTablet: boolean;
   isHearing: boolean;
   isHearIntro: boolean;
   isHearSetup: boolean;
@@ -173,6 +174,7 @@ export function computeViewModel(s: AppState): ViewModel {
 
   return {
     isGate: s.screen === 'gate',
+    isTablet: s.isTablet,
     isHearing: s.screen === 'hearing',
     isHearIntro: s.screen === 'hearing' && s.hearStep === 'intro',
     isHearSetup: s.screen === 'hearing' && s.hearStep === 'setup',

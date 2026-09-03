@@ -25,6 +25,19 @@ const PLAY_ICON_SMALL = `<svg width="30" height="30" viewBox="0 0 24 24"><path d
 const BACK_ICON = `<svg width="10" height="10" viewBox="0 0 12 12"><path d="M8 1 L3 6 L8 11" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>`;
 const NO_RESPONSE_ARROW = `<path d="M7 1 L7 11 M2 7 L7 12 L12 7" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
 
+// Shared "raised" back/EXIT button — originally mobile-only (phone's
+// explanation/setup/calibrate/measure/results screens), now also used by
+// iPad's PC-based top bar (see renderHearTopBar's vm.isTablet branch) for
+// the same touch-friendly press feedback, so it lives here rather than in
+// mobileTemplates.ts to avoid a circular import between the two files.
+export function renderRaisedBackButton(action: string, label: string): string {
+  return `
+  <div data-action="${action}" class="eg-back-btn">
+    <svg width="18" height="18" viewBox="0 0 12 12"><path d="M8 1 L3 6 L8 11" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
+    ${label}
+  </div>`;
+}
+
 function renderGate(s: AppState): string {
   return `
   <div style="position:relative;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:36px;">
@@ -50,6 +63,23 @@ function renderGate(s: AppState): string {
 function renderHearTopBar(vm: ViewModel): string {
   const backAction = vm.isHearCalibrate ? 'goBackToHearSetup' : 'goToGate';
   const backLabel = vm.isHearCalibrate ? '戻る' : 'EXIT';
+  const stopLink = vm.hearShowStop
+    ? `<div data-action="stopHearingTest" class="eg-link" style="cursor:pointer;font-family:var(--font-mono);font-size:12px;letter-spacing:2px;color:var(--bad);">■ 緊急停止</div>`
+    : `<div style="width:70px;"></div>`;
+
+  // iPad: the raised touch-friendly back button (shared with the phone UI —
+  // see renderRaisedBackButton) instead of PC's small text link, and no
+  // "聴力チェック" heading — both per explicit request. Row height grows to
+  // fit the taller button; real PC (vm.isTablet false) keeps the original
+  // compact 14px row untouched.
+  if (vm.isTablet) {
+    return `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
+      ${renderRaisedBackButton(backAction, backLabel)}
+      ${stopLink}
+    </div>`;
+  }
+
   return `
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;height:14px;">
     <div data-action="${backAction}" class="eg-link" style="cursor:pointer;display:flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:12px;letter-spacing:2px;color:var(--text-dim);">
@@ -57,15 +87,11 @@ function renderHearTopBar(vm: ViewModel): string {
       ${backLabel}
     </div>
     <div style="font-family:var(--font-mono);font-size:12px;letter-spacing:4px;color:var(--text-dim);">聴力チェック</div>
-    ${
-      vm.hearShowStop
-        ? `<div data-action="stopHearingTest" class="eg-link" style="cursor:pointer;font-family:var(--font-mono);font-size:12px;letter-spacing:2px;color:var(--bad);">■ 緊急停止</div>`
-        : `<div style="width:70px;"></div>`
-    }
+    ${stopLink}
   </div>`;
 }
 
-function renderHearIntro(): string {
+function renderHearIntro(vm: ViewModel): string {
   return `
   <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;max-width:620px;margin:0 auto;text-align:center;">
     <div style="font-size:24px;font-weight:700;letter-spacing:1px;">簡易聴力チェック</div>
@@ -78,7 +104,7 @@ function renderHearIntro(): string {
       ・体調に異変を感じたら、いつでも「緊急停止」で中断できます
     </div>
     <div style="font-family:var(--font-mono);font-size:13px;color:var(--text-dim);line-height:1.8;white-space:nowrap;">※使用機器の音量設定に依存する相対的な簡易チェックです。医療機関の聴力検査の代わりにはなりません。</div>
-    <button data-action="goToHearSetup" class="eg-btn" style="background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:13px;padding:14px 48px;cursor:pointer;border-radius:2px;">はじめる</button>
+    <button data-action="goToHearSetup" class="eg-btn${vm.isTablet ? ' eg-btn-glow' : ''}" style="background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:13px;padding:14px 48px;cursor:pointer;border-radius:2px;">はじめる</button>
   </div>`;
 }
 
@@ -118,7 +144,7 @@ function renderHearSetup(vm: ViewModel): string {
       <div style="font-family:var(--font-mono);font-size:12px;letter-spacing:1px;color:var(--text-dim);">音質の特性</div>
       <div style="display:flex;gap:10px;">${listeningButtons}</div>
     </div>
-    <button data-action="beginHearingCalibration" class="eg-btn" style="background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:13px;padding:14px 48px;cursor:pointer;border-radius:2px;margin-top:8px;">OK（音が出ます）</button>
+    <button data-action="beginHearingCalibration" class="eg-btn${vm.isTablet ? ' eg-btn-glow' : ''}" style="background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:13px;padding:14px 48px;cursor:pointer;border-radius:2px;margin-top:8px;">OK（音が出ます）</button>
   </div>`;
 }
 
@@ -132,7 +158,7 @@ function renderHearCalibrate(vm: ViewModel): string {
     <div style="font-family:var(--font-mono);font-size:13px;color:var(--text-dim);line-height:2;">
       1kHzの基準音が鳴り続けています。<br/>ヘッドホン/イヤホンの音量を、無理なくはっきり聞き取れる<br/>「ちょうど良い」大きさに調整してください。<br/>調整後は測定が終わるまで機器の音量を変更しないでください。
     </div>
-    <button data-action="confirmHearingCalibration" class="eg-btn" style="background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:13px;padding:14px 48px;cursor:pointer;border-radius:2px;">この音量で測定を始める</button>
+    <button data-action="confirmHearingCalibration" class="eg-btn${vm.isTablet ? ' eg-btn-glow' : ''}" style="background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:13px;padding:14px 48px;cursor:pointer;border-radius:2px;">この音量で測定を始める</button>
   </div>`;
 }
 
@@ -164,7 +190,7 @@ function renderHearMeasure(vm: ViewModel): string {
       ${PLAY_ICON_SMALL}
     </div>
     <div style="display:flex;align-items:center;gap:16px;">
-      <button data-action="handleHearingHeard" class="eg-btn" style="background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:14px;padding:16px 0;width:260px;cursor:pointer;border-radius:2px;">聞こえたら押す（Spaceキー）</button>
+      <button data-action="handleHearingHeard" class="eg-btn${vm.isTablet ? ' eg-btn-glow' : ''}" style="background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:14px;padding:16px 0;width:260px;cursor:pointer;border-radius:2px;">聞こえたら押す（Spaceキー）</button>
       <button data-action="stopHearingTest" class="eg-btn" style="background:var(--bad);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:14px;padding:16px 24px;cursor:pointer;border-radius:2px;">■ 緊急停止</button>
     </div>
     <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);">聞こえなければ何もしなくて大丈夫です</div>
@@ -244,7 +270,25 @@ export function renderHearGraphBlock(vm: ViewModel): string {
   </div>`;
 }
 
+// iPad only ("as large as possible" per explicit request) — PC's own results
+// screen keeps the graph at its native 900x300 size (renderHearGraphBlock's
+// own coordinate system, shared with print), same nested-scale-wrapper
+// technique the mobile results screen already uses.
+const TABLET_GRAPH_SCALE = 0.85;
+const TABLET_GRAPH_W = 900;
+const TABLET_GRAPH_H = 300;
+
 function renderHearDone(vm: ViewModel): string {
+  const graphBlock = vm.isTablet
+    ? `<div style="width:${TABLET_GRAPH_W * TABLET_GRAPH_SCALE}px;height:${
+        TABLET_GRAPH_H * TABLET_GRAPH_SCALE
+      }px;flex-shrink:0;overflow:visible;">
+        <div style="width:${TABLET_GRAPH_W}px;transform:scale(${TABLET_GRAPH_SCALE});transform-origin:top left;">
+          ${renderHearGraphBlock(vm)}
+        </div>
+      </div>`
+    : renderHearGraphBlock(vm);
+
   return `
   <div style="flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;align-items:center;gap:18px;padding:8px 0 16px;">
     <div style="font-family:var(--font-mono);font-size:13px;letter-spacing:4px;color:var(--text-dim);">測定結果</div>
@@ -261,7 +305,7 @@ function renderHearDone(vm: ViewModel): string {
       <div>測定日 ${vm.hearReportDate}</div>
       <button data-action="printHearingReport" class="eg-btn-pdf" style="background:transparent;padding:10px 24px;border-radius:2px;font-weight:700;letter-spacing:2px;font-size:12px;cursor:pointer;transition:border-color 0.15s ease, color 0.15s ease;">PDFで保存</button>
     </div>
-    ${renderHearGraphBlock(vm)}
+    ${graphBlock}
     <div style="display:flex;justify-content:center;gap:24px;font-family:var(--font-mono);font-size:11px;color:var(--text-dim);">
       <div style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;border:2px solid var(--bad);display:inline-block;"></span>右耳</div>
       <div style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border:2px solid var(--ear-l);display:inline-block;transform:rotate(45deg);"></span>左耳</div>
@@ -368,7 +412,7 @@ export function renderScreenContent(s: AppState, vm: ViewModel): string {
   if (vm.isGate) return renderGate(s);
 
   let stepHtml = '';
-  if (vm.isHearIntro) stepHtml = renderHearIntro();
+  if (vm.isHearIntro) stepHtml = renderHearIntro(vm);
   else if (vm.isHearSetup) stepHtml = renderHearSetup(vm);
   else if (vm.isHearCalibrate) stepHtml = renderHearCalibrate(vm);
   else if (vm.isHearMeasure) stepHtml = renderHearMeasure(vm);

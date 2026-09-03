@@ -29,6 +29,13 @@ export interface AppState {
   hearReportName: string;
   hearDeviceType: DeviceType;
   hearListeningType: ListeningType;
+  // iPad: uses the PC chassis/screens (not the phone's frame-less mobile UI —
+  // see main.ts's device detection), with a handful of targeted touch-
+  // friendly overrides (back button, CTA press feedback, no "聴力チェック"
+  // heading, bigger results graph). Constant for the session, riding along in
+  // state purely so templates.ts's PC render functions (which only ever
+  // receive AppState/ViewModel, never a device flag directly) can see it.
+  isTablet: boolean;
 }
 
 export function createInitialHearingState(): Pick<
@@ -56,11 +63,12 @@ export function createInitialHearingState(): Pick<
   };
 }
 
-export function createInitialState(isMobile: boolean): AppState {
+export function createInitialState(isMobile: boolean, isTablet: boolean = false): AppState {
   return {
     screen: isMobile ? 'opening' : 'gate',
     password: '',
     passwordError: false,
+    isTablet,
     ...createInitialHearingState(),
   };
 }
