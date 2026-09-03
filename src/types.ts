@@ -65,7 +65,8 @@ export function createInitialHearingState(): Pick<
 
 export function createInitialState(isMobile: boolean, isTablet: boolean = false): AppState {
   return {
-    screen: isMobile ? 'opening' : 'gate',
+    // No login gate on tablet either — see app.ts's goToGate.
+    screen: isMobile || isTablet ? 'opening' : 'gate',
     password: '',
     passwordError: false,
     isTablet,

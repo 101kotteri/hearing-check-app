@@ -5,9 +5,12 @@ import {
   MOBILE_OPENING_FRAME_W,
   PC_CHASSIS_H,
   PC_CHASSIS_W,
+  TABLET_FRAME_H,
+  TABLET_FRAME_W,
   renderChassis,
   renderMobileOpeningFrame,
   renderMobileRoot,
+  renderTabletFrame,
 } from './chassis';
 import {
   GATE_PASSWORD,
@@ -66,6 +69,7 @@ export class App {
   private transitionOverlay: HTMLElement;
   private backBtnOverlay: HTMLElement;
   private isMobile: boolean;
+  private isTablet: boolean;
   // Which outer shell is currently mounted in rootEl — PC always stays framed
   // (chassis, 1504x838); mobile is framed only on the opening screen and
   // frame-less everywhere after it (see mountRoot). Starts null so the first
@@ -94,11 +98,15 @@ export class App {
 
   constructor(root: HTMLElement, isMobile: boolean, isTablet: boolean = false) {
     this.isMobile = isMobile;
-    // Tablet deliberately does NOT set isMobile — it follows the PC chassis/
-    // fit/mount path throughout this class (framed always, gate screen, no
-    // back-btn-overlay, etc.) and only differs at the template level (see
-    // templates.ts's vm.isTablet branches), per explicit direction to base
-    // it on the PC version rather than the phone's frame-less mobile UI.
+    // Tablet deliberately does NOT set isMobile — it stays on the PC-based
+    // chassis/fit/mount path (always framed, no back-btn-overlay) and reuses
+    // PC's own templates for every screen after the opening one, per explicit
+    // direction to base it on the PC version rather than the phone's frame-
+    // less mobile UI. It DOES get its own taller frame variant (see
+    // renderTabletFrame) and, per a later explicit request, the phone's
+    // opening screen/animation with no password gate — see wantsFramedChassis,
+    // mountRoot, and goToGate for where isTablet is checked alongside isMobile.
+    this.isTablet = isTablet;
     this.state = createInitialState(isMobile, isTablet);
     this.rootEl = root;
 
@@ -144,11 +152,11 @@ export class App {
     this.render();
   }
 
-  // Framed on: PC always; mobile's opening screen; mobile's calibrate/measure
-  // steps (brought back by explicit request — everything else from the
-  // explanation screen on stays frame-less).
+  // Framed on: PC and tablet always; mobile's opening screen; mobile's
+  // calibrate/measure steps (brought back by explicit request — everything
+  // else from the explanation screen on stays frame-less).
   private wantsFramedChassis(): boolean {
-    if (!this.isMobile) return true;
+    if (!this.isMobile) return true; // covers both PC and tablet
     if (this.state.screen === 'opening') return true;
     return (
       this.state.screen === 'hearing' && (this.state.hearStep === 'calibrate' || this.state.hearStep === 'measure')
@@ -172,10 +180,15 @@ export class App {
   // separately by fitToScreen, which render() always calls afterward.
   private mountRoot(framed: boolean): void {
     if (framed) {
-      // PC always gets the full-width chassis; mobile gets its own narrower,
-      // closer-to-square variant (explicitly NOT the PC chassis, which stays
-      // exactly as-is) for both the opening screen and calibrate/measure.
-      this.rootEl.innerHTML = this.isMobile ? renderMobileOpeningFrame() : renderChassis();
+      // PC always gets the full-width chassis (unchanged); mobile gets its
+      // own narrower, closer-to-square variant for the opening screen and
+      // calibrate/measure; tablet gets its own taller-bezel variant, used
+      // for every screen (tablet is always framed — see wantsFramedChassis).
+      this.rootEl.innerHTML = this.isTablet
+        ? renderTabletFrame()
+        : this.isMobile
+          ? renderMobileOpeningFrame()
+          : renderChassis();
     } else {
       this.rootEl.innerHTML = renderMobileRoot();
     }
@@ -197,9 +210,17 @@ export class App {
     return { scale, offsetX, offsetY };
   }
 
+  private framedW(): number {
+    return this.isTablet ? TABLET_FRAME_W : this.isMobile ? MOBILE_OPENING_FRAME_W : PC_CHASSIS_W;
+  }
+
+  private framedH(): number {
+    return this.isTablet ? TABLET_FRAME_H : this.isMobile ? MOBILE_OPENING_FRAME_H : PC_CHASSIS_H;
+  }
+
   private fitToScreen = (): void => {
-    const w = this.isCurrentlyFramed ? (this.isMobile ? MOBILE_OPENING_FRAME_W : PC_CHASSIS_W) : MOBILE_CHASSIS_W;
-    const h = this.isCurrentlyFramed ? (this.isMobile ? MOBILE_OPENING_FRAME_H : PC_CHASSIS_H) : MOBILE_CHASSIS_H;
+    const w = this.isCurrentlyFramed ? this.framedW() : MOBILE_CHASSIS_W;
+    const h = this.isCurrentlyFramed ? this.framedH() : MOBILE_CHASSIS_H;
 
     if (this.isCurrentlyFramed && this.framedFitMode === 'overflow-top') {
       // Scale so that OVERFLOW_CROP_FRACTION down the frame lands exactly at
@@ -260,7 +281,10 @@ export class App {
       this.backBtnOverlay.innerHTML = '';
     }
 
-    if (this.isMobile && this.state.screen === 'opening') {
+    if ((this.isMobile || this.isTablet) && this.state.screen === 'opening') {
+      // Tablet reuses the exact same opening content as phone, per explicit
+      // request ("iPhoneと同じものを採用してください") — only the frame
+      // around it differs (renderTabletFrame vs. renderMobileOpeningFrame).
       this.screenRoot.innerHTML = renderMobileOpening();
     } else if (this.isMobile && this.state.screen === 'hearing' && this.state.hearStep === 'intro') {
       this.screenRoot.innerHTML = renderMobileIntro();
@@ -277,7 +301,7 @@ export class App {
     }
     this.printRoot.innerHTML = vm.isHearDone ? renderPrintReport(vm) : '';
 
-    if (this.isMobile && this.state.screen === 'opening') {
+    if ((this.isMobile || this.isTablet) && this.state.screen === 'opening') {
       this.startOpeningSequence();
     }
   }
@@ -393,10 +417,10 @@ export class App {
 
   private goToGate(): void {
     this.stopHearingAudio();
-    if (this.isMobile) {
-      // No login on mobile — EXIT returns to the opening screen instead,
-      // replaying its animation (render() starts it whenever screen becomes
-      // 'opening').
+    if (this.isMobile || this.isTablet) {
+      // No login on mobile or tablet — EXIT returns to the opening screen
+      // instead, replaying its animation (render() starts it whenever screen
+      // becomes 'opening').
       this.setState({ screen: 'opening', ...createInitialHearingState() });
       return;
     }
@@ -450,6 +474,20 @@ export class App {
 
       this.openingTimer2 = window.setTimeout(() => {
         this.setState({ screen: 'hearing', hearStep: 'intro' });
+        // Mobile's intro is frame-less, so mountRoot() replaces #app-shell
+        // entirely and the zoomed-out/transparent inline styles set above go
+        // away with it. Tablet's intro stays on the SAME framed shell (no
+        // remount — see wantsFramedChassis), so without this reset it would
+        // carry the scale(2.4)/opacity:0 from the zoom-out straight into the
+        // next screen, rendering it huge and invisible.
+        const shell = this.rootEl.querySelector<HTMLElement>('#app-shell');
+        if (shell) {
+          shell.style.transition = 'none';
+          shell.style.transform = '';
+          shell.style.opacity = '1';
+          void shell.offsetHeight; // force reflow before re-enabling transitions
+          shell.style.transition = '';
+        }
         requestAnimationFrame(() => {
           this.transitionOverlay.style.transition = `opacity ${OPENING_REVEAL_MS}ms ease-out`;
           this.transitionOverlay.style.opacity = '0';
