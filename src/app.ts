@@ -51,6 +51,15 @@ const OPENING_ZOOM_MS = 600;
 const OPENING_REVEAL_MS = 400;
 const OPENING_ZOOM_SCALE = 2.4;
 
+// iPad's opening→explanation transition, per explicit direction: unlike
+// phone, the frame is never remounted going into intro (tablet is always
+// framed), so it should never animate AT ALL — no fade-in, no zoom-out, no
+// black cover. Only the CONTENT crossfades in place: the logo/title slowly
+// fades out while the explanation screen simultaneously fades in underneath,
+// overlapping visibly mid-transition (not a sequential fade-out-then-in).
+const TABLET_OPENING_HOLD_MS = 4500;
+const TABLET_OPENING_CROSSFADE_MS = 1800;
+
 // Calibrate's decorative frame is mounted fresh (setup is frame-less) each
 // time it's entered — fades in like the opening screen's frame, just shorter
 // since there's no logo/title sequence waiting on it.
@@ -301,8 +310,10 @@ export class App {
     }
     this.printRoot.innerHTML = vm.isHearDone ? renderPrintReport(vm) : '';
 
-    if ((this.isMobile || this.isTablet) && this.state.screen === 'opening') {
+    if (this.isMobile && this.state.screen === 'opening') {
       this.startOpeningSequence();
+    } else if (this.isTablet && this.state.screen === 'opening') {
+      this.startTabletOpeningSequence();
     }
   }
 
@@ -494,6 +505,71 @@ export class App {
         });
       }, OPENING_ZOOM_MS);
     }, OPENING_HOLD_MS);
+  }
+
+  private startTabletOpeningSequence(): void {
+    window.clearTimeout(this.openingTimer1);
+    window.clearTimeout(this.openingTimer2);
+
+    // The frame itself (#app-shell) is left completely untouched here — no
+    // opacity/transform styling at all, on purpose (see the constant's
+    // comment above). Only the logo/title CSS animations (already applied
+    // via renderMobileOpening's classes) play, same as phone.
+    this.openingTimer1 = window.setTimeout(() => {
+      // Snapshot the current (logo/title) content into a sibling overlay,
+      // still fully opaque, so it can fade out independently of whatever
+      // replaces #screen-root's own content next.
+      const overlay = document.createElement('div');
+      overlay.id = 'tablet-opening-crossfade-overlay';
+      overlay.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:1;';
+      overlay.innerHTML = this.screenRoot.innerHTML;
+      // The logo/title's own entrance animations (.mobile-opening-logo/-text,
+      // style.css) use fill-mode "both" with a multi-second delay — cloned
+      // into a fresh DOM node via innerHTML, that animation restarts from
+      // its pre-entrance 0% keyframe (invisible/rotated) rather than keeping
+      // the already-settled end state, making the whole snapshot invisible
+      // for the entire crossfade. Lock them to their finished state instead.
+      overlay.querySelectorAll<HTMLElement>('.mobile-opening-logo, .mobile-opening-text').forEach((el) => {
+        el.style.animation = 'none';
+        el.style.opacity = '1';
+        el.style.transform = 'none';
+      });
+      this.screenRoot.parentElement?.appendChild(overlay);
+
+      // Hide the live root instantly (no transition yet) so the moment its
+      // content is replaced with the explanation screen below, it starts
+      // invisible — ready to fade in from there.
+      this.screenRoot.style.transition = 'none';
+      this.screenRoot.style.opacity = '0';
+      void this.screenRoot.offsetHeight; // force reflow before re-enabling transitions
+
+      this.setState({ screen: 'hearing', hearStep: 'intro' });
+
+      // Both fades run over the SAME window, started together, so the old
+      // (logo/title) and new (explanation) content are simultaneously
+      // partially visible mid-transition — a true crossfade, not a fade-out
+      // then a separate fade-in.
+      requestAnimationFrame(() => {
+        // linear, not ease — ease's fast-starting curve made the new screen
+        // dominate almost immediately, leaving the overlap barely visible;
+        // a constant rate keeps both content layers clearly part-visible
+        // for a good stretch through the middle of the transition.
+        overlay.style.transition = `opacity ${TABLET_OPENING_CROSSFADE_MS}ms linear`;
+        overlay.style.opacity = '0';
+        this.screenRoot.style.transition = `opacity ${TABLET_OPENING_CROSSFADE_MS}ms linear`;
+        this.screenRoot.style.opacity = '1';
+      });
+
+      window.setTimeout(() => {
+        overlay.remove();
+        // Clear the inline opacity/transition now that the crossfade is
+        // done — leaving them set (even at their resting values) would
+        // otherwise silently apply this same slow transition to any later,
+        // unrelated opacity change on this element.
+        this.screenRoot.style.transition = '';
+        this.screenRoot.style.opacity = '';
+      }, TABLET_OPENING_CROSSFADE_MS + 50);
+    }, TABLET_OPENING_HOLD_MS);
   }
 
   private goToHearSetup(): void {
