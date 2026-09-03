@@ -403,7 +403,7 @@ export function renderHearGraphBlock(vm: ViewModel): string {
 // slightly vertically stretched at this ratio — minor at this scale gap,
 // but worth knowing if it's ever revisited.
 const TABLET_GRAPH_SCALE_X = 1.35;
-const TABLET_GRAPH_SCALE_Y = 1.82;
+const TABLET_GRAPH_SCALE_Y = 1.6;
 const TABLET_GRAPH_W = 900;
 const TABLET_GRAPH_H = 300;
 
@@ -441,10 +441,20 @@ function renderHearDone(vm: ViewModel): string {
   // AFTER it; only the graph's own height and whatever comes after it
   // (legend/disclaimer) were ever moving. PC's own top-aligned/scrollable
   // behavior is intentional and untouched — this is tablet-only.
+  // Still justify-content:center (keeps the fix from the earlier round —
+  // growing the graph still pushes things apart), but per explicit direction
+  // not to be precious about EXACT centering, top/bottom padding is now
+  // asymmetric: more padding-top than padding-bottom nudges the whole block
+  // down a little (padding-top minus padding-bottom, halved, is the actual
+  // shift — see the math worked out when this was tuned), while padding-
+  // bottom itself is generous specifically to keep the disclaimer clear of
+  // a rendering artifact reported right at the bezel's bottom inner edge on
+  // a real device (not reproduced in headless testing, so sized with margin
+  // rather than trimmed to a measured minimum).
   return `
   <div style="flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;align-items:center;${
     vm.isTablet ? 'justify-content:center;' : ''
-  }gap:${vm.isTablet ? ts(vm, 5) : 18}px;padding:${vm.isTablet ? '2px 0 4px' : '8px 0 16px'};">
+  }gap:${vm.isTablet ? ts(vm, 10) : 18}px;padding:${vm.isTablet ? '70px 0 50px' : '8px 0 16px'};">
     ${resultHeader}
     <div style="display:flex;align-items:center;gap:${ts(vm, 24)}px;font-family:var(--font-mono);font-size:${ts(
     vm,
@@ -458,10 +468,9 @@ function renderHearDone(vm: ViewModel): string {
         )}px;padding:8px 10px;border-radius:2px;outline:none;width:${ts(vm, 160)}px;" />
       </div>
       <div>測定日 ${vm.hearReportDate}</div>
-      <button data-action="printHearingReport" class="eg-btn-pdf" style="background:transparent;padding:${ts(
-        vm,
-        10
-      )}px ${ts(vm, 24)}px;border-radius:2px;font-weight:700;letter-spacing:2px;font-size:${ts(
+      <button data-action="printHearingReport" class="eg-btn-pdf" style="background:transparent;${
+        vm.isTablet ? 'border:1px solid var(--accent);color:var(--accent);' : ''
+      }padding:${ts(vm, 10)}px ${ts(vm, 24)}px;border-radius:2px;font-weight:700;letter-spacing:2px;font-size:${ts(
     vm,
     12
   )}px;cursor:pointer;transition:border-color 0.15s ease, color 0.15s ease;">PDFで保存</button>
