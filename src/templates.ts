@@ -88,10 +88,12 @@ function renderHearTopBar(vm: ViewModel): string {
   // fit the taller button; real PC (vm.isTablet false) keeps the original
   // compact 14px row untouched.
   if (vm.isTablet) {
+    // 緊急停止 during calibrate moved out of the top bar and onto a solid
+    // button beside the play circle (see renderHearCalibrate) — same design
+    // and placement as the phone UI — so this row never shows it, unlike PC.
     return `
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
+    <div style="display:flex;align-items:center;margin-bottom:22px;">
       ${renderRaisedBackButton(backAction, backLabel)}
-      ${stopLink}
     </div>`;
   }
 
@@ -196,16 +198,37 @@ function renderHearSetup(vm: ViewModel): string {
 }
 
 function renderHearCalibrate(vm: ViewModel): string {
+  // iPad: 緊急停止 as a solid button beside the play circle — same design and
+  // placement as the phone UI's calibrate screen — instead of PC's small red
+  // text link in the top bar (which is suppressed for tablet, see
+  // renderHearTopBar). Wrapped with the circle in its own position:relative
+  // box so the button doesn't pull the pair's centering off the circle's own
+  // center (same technique the phone template uses).
+  const stopButton = vm.isTablet
+    ? `<button data-action="stopHearingTest" class="eg-btn" style="position:absolute;left:100%;top:50%;transform:translateY(-50%);margin-left:${ts(
+        vm,
+        28
+      )}px;white-space:nowrap;background:var(--bad);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:${ts(
+        vm,
+        14
+      )}px;padding:${ts(vm, 16)}px ${ts(vm, 24)}px;cursor:pointer;border-radius:4px;">■ 緊急停止</button>`
+    : '';
+
   return `
   <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:${ts(
     vm,
     26
   )}px;max-width:${ts(vm, 560)}px;margin:0 auto;text-align:center;">
-    <div class="eg-play ${vm.hearCalPlayingClass}" style="${breatheDelayStyle(CALIBRATE_BREATHE_CYCLE_MS)}width:${ts(
+    <div style="position:relative;">
+      <div class="eg-play ${vm.hearCalPlayingClass}" style="${breatheDelayStyle(
+    CALIBRATE_BREATHE_CYCLE_MS
+  )}width:${ts(vm, 100)}px;height:${ts(
     vm,
     100
-  )}px;height:${ts(vm, 100)}px;border-radius:50%;background:var(--panel-2);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;">
-      ${PLAY_ICON}
+  )}px;border-radius:50%;background:var(--panel-2);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;">
+        ${PLAY_ICON}
+      </div>
+      ${stopButton}
     </div>
     <div style="font-size:${ts(vm, 16)}px;font-weight:700;">音量を調整してください</div>
     <div style="font-family:var(--font-mono);font-size:${ts(vm, 13)}px;color:var(--text-dim);line-height:2;">
@@ -346,35 +369,48 @@ export function renderHearGraphBlock(vm: ViewModel): string {
 // iPad only ("as large as possible" per explicit request) — PC's own results
 // screen keeps the graph at its native 900x300 size (renderHearGraphBlock's
 // own coordinate system, shared with print), same nested-scale-wrapper
-// technique the mobile results screen already uses.
-const TABLET_GRAPH_SCALE = 1.35;
+// technique the mobile results screen already uses. Scaled non-uniformly per
+// a follow-up request ("横幅は今のままでOK" — keep the width, just grow the
+// height) once moving the Name/測定結果 rows up freed more vertical room
+// than horizontal: X stays at the previously-tuned 1.35, Y goes further.
+// Trade-off accepted knowingly, not overlooked: the data-point circles/
+// diamonds render as slightly non-circular ellipses and axis text is very
+// slightly vertically stretched at this ratio — minor at this scale gap,
+// but worth knowing if it's ever revisited.
+const TABLET_GRAPH_SCALE_X = 1.35;
+const TABLET_GRAPH_SCALE_Y = 1.38;
 const TABLET_GRAPH_W = 900;
 const TABLET_GRAPH_H = 300;
 
 function renderHearDone(vm: ViewModel): string {
   const graphBlock = vm.isTablet
-    ? `<div style="width:${TABLET_GRAPH_W * TABLET_GRAPH_SCALE}px;height:${
-        TABLET_GRAPH_H * TABLET_GRAPH_SCALE
+    ? `<div style="width:${TABLET_GRAPH_W * TABLET_GRAPH_SCALE_X}px;height:${
+        TABLET_GRAPH_H * TABLET_GRAPH_SCALE_Y
       }px;flex-shrink:0;overflow:visible;">
-        <div style="width:${TABLET_GRAPH_W}px;transform:scale(${TABLET_GRAPH_SCALE});transform-origin:top left;">
+        <div style="width:${TABLET_GRAPH_W}px;transform:scale(${TABLET_GRAPH_SCALE_X}, ${TABLET_GRAPH_SCALE_Y});transform-origin:top left;">
           ${renderHearGraphBlock(vm)}
         </div>
       </div>`
     : renderHearGraphBlock(vm);
 
-  // iPad: partial-results warning sits to the right of 測定結果 on one row
-  // (mirroring the phone results screen's top-right placement) instead of
-  // stacked as its own centered line below it — saves a row of height,
-  // freed up for the graph. PC keeps its original two-line layout exactly.
+  // iPad: 測定結果 stays truly centered (the warning is absolutely
+  // positioned off to its right, so it contributes zero width to the
+  // shrink-wrapped wrapper the parent's align-items:center centers — a
+  // flex-row approach centered the PAIR as a block instead, pulling 測定結果
+  // itself off-center whenever a warning was present, per direct feedback).
+  // PC keeps its original two-line stacked layout exactly.
   const resultHeader = vm.isTablet
-    ? `<div style="display:flex;align-items:baseline;gap:${ts(vm, 16)}px;">
+    ? `<div style="position:relative;">
         <span style="font-family:var(--font-mono);font-size:${ts(
           vm,
           13
-        )}px;letter-spacing:4px;color:var(--text-dim);">測定結果</span>
+        )}px;letter-spacing:4px;color:var(--text-dim);white-space:nowrap;">測定結果</span>
         ${
           vm.hearIsPartial
-            ? `<span style="font-family:var(--font-mono);font-size:${ts(
+            ? `<span style="position:absolute;left:100%;top:50%;transform:translateY(-50%);margin-left:${ts(
+                vm,
+                16
+              )}px;white-space:nowrap;font-family:var(--font-mono);font-size:${ts(
                 vm,
                 11
               )}px;color:var(--bad);letter-spacing:1px;">※途中で停止したため、一部の周波数は未測定です</span>`
