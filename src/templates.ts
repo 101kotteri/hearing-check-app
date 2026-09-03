@@ -93,30 +93,28 @@ function renderHearTopBar(vm: ViewModel): string {
     // and placement as the phone UI — so this row never shows it, unlike PC.
     // 測定結果 (+ the partial-results warning) moved up here from the
     // results screen's own content, per explicit request that it sit at the
-    // same height as EXIT — align-items:center on this row does that for
-    // free. renderHearDone no longer renders its own copy for tablet (see
-    // resultHeader there).
+    // same height as EXIT. Now absolutely positioned within the row itself —
+    // 測定結果 truly centered (left:50%, independent of EXIT's width so it
+    // doesn't skew off the row's real center), warning pinned to the right
+    // edge — per a follow-up request, rather than both being packed
+    // left-aligned right after EXIT. renderHearDone no longer renders its
+    // own copy for tablet (see resultHeader there).
     const resultTitle = vm.isHearDone
-      ? `<div style="position:relative;margin-left:${ts(vm, 28)}px;">
-          <span style="font-family:var(--font-mono);font-size:${ts(
-            vm,
-            13
-          )}px;letter-spacing:4px;color:var(--text-dim);white-space:nowrap;">測定結果</span>
-          ${
-            vm.hearIsPartial
-              ? `<span style="position:absolute;left:100%;top:50%;transform:translateY(-50%);margin-left:${ts(
-                  vm,
-                  32
-                )}px;white-space:nowrap;font-family:var(--font-mono);font-size:${ts(
-                  vm,
-                  11
-                )}px;color:var(--bad);letter-spacing:1px;">※途中で停止したため、一部の周波数は未測定です</span>`
-              : ''
-          }
-        </div>`
+      ? `<span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:var(--font-mono);font-size:${ts(
+          vm,
+          13
+        )}px;letter-spacing:4px;color:var(--text-dim);white-space:nowrap;">測定結果</span>
+        ${
+          vm.hearIsPartial
+            ? `<span style="position:absolute;right:0;top:50%;transform:translateY(-50%);white-space:nowrap;font-family:var(--font-mono);font-size:${ts(
+                vm,
+                11
+              )}px;color:var(--bad);letter-spacing:1px;">※途中で停止したため、一部の周波数は未測定です</span>`
+            : ''
+        }`
       : '';
     return `
-    <div style="display:flex;align-items:center;margin-bottom:22px;">
+    <div style="position:relative;display:flex;align-items:center;margin-bottom:22px;">
       ${renderRaisedBackButton(backAction, backLabel)}
       ${resultTitle}
     </div>`;
