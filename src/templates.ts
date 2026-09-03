@@ -32,7 +32,7 @@ const NO_RESPONSE_ARROW = `<path d="M7 1 L7 11 M2 7 L7 12 L12 7" stroke-width="2
 // report or the graph block, which have their own separate scale story) size
 // up by that same 1.3x on tablet — applied via this helper at each call site
 // rather than duplicating whole style strings per screen.
-const TABLET_TEXT_SCALE = 1.5;
+const TABLET_TEXT_SCALE = 1.6;
 function ts(vm: ViewModel, pxVal: number): number {
   return vm.isTablet ? Math.round(pxVal * TABLET_TEXT_SCALE) : pxVal;
 }
@@ -585,6 +585,31 @@ export function renderScreenContent(s: AppState, vm: ViewModel): string {
   else if (vm.isHearCalibrate) stepHtml = renderHearCalibrate(vm);
   else if (vm.isHearMeasure) stepHtml = renderHearMeasure(vm);
   else if (vm.isHearDone) stepHtml = renderHearDone(vm);
+
+  // iPad: the top bar overlays the content (position:absolute) instead of
+  // sitting in normal flow above it, so each screen's own centered content
+  // centers against the FULL padded canvas height, not "canvas minus top
+  // bar height" — per explicit request that EXIT/the top bar not factor
+  // into where content centers. Previously, since content only centered
+  // within the flex:1 space left AFTER the top bar, the effective content
+  // block sat exactly (top bar height) lower than true-center, showing up
+  // as visibly more empty space above the content than below it. Content
+  // wrapper is placed AFTER the top bar in DOM order so it stays on top for
+  // stacking purposes, but the top bar's own div still paints above it
+  // where they'd overlap, since the top bar box itself is short — verified
+  // via elementFromPoint that EXIT stays clickable regardless. PC's layout
+  // (top bar in normal flow, unchanged) is intentionally left as-is.
+  if (vm.isTablet) {
+    return `
+    <div style="position:relative;width:100%;height:100%;box-sizing:border-box;padding:24px 56px;">
+      <div style="position:relative;width:100%;height:100%;display:flex;flex-direction:column;">
+        ${stepHtml}
+      </div>
+      <div style="position:absolute;top:24px;left:56px;right:56px;">
+        ${renderHearTopBar(vm)}
+      </div>
+    </div>`;
+  }
 
   return `
   <div style="position:relative;width:100%;height:100%;box-sizing:border-box;padding:24px 56px;display:flex;flex-direction:column;">
