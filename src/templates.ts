@@ -403,7 +403,7 @@ export function renderHearGraphBlock(vm: ViewModel): string {
 // slightly vertically stretched at this ratio — minor at this scale gap,
 // but worth knowing if it's ever revisited.
 const TABLET_GRAPH_SCALE_X = 1.35;
-const TABLET_GRAPH_SCALE_Y = 1.6;
+const TABLET_GRAPH_SCALE_Y = 1.7;
 const TABLET_GRAPH_W = 900;
 const TABLET_GRAPH_H = 300;
 
@@ -434,27 +434,36 @@ function renderHearDone(vm: ViewModel): string {
   // Real bug, same class as an earlier phone-screen one: this container was
   // missing justify-content:center the whole time (only align-items:center
   // was set, which is the CROSS axis — horizontal — in a column flex
-  // container; the MAIN/vertical axis defaults to flex-start). Every "grow
-  // the graph to push Name/測定結果 up" change this round actually did
-  // nothing to their position — with no vertical centering, content earlier
-  // in the DOM than the graph can never be pushed by something growing
-  // AFTER it; only the graph's own height and whatever comes after it
-  // (legend/disclaimer) were ever moving. PC's own top-aligned/scrollable
-  // behavior is intentional and untouched — this is tablet-only.
-  // Still justify-content:center (keeps the fix from the earlier round —
-  // growing the graph still pushes things apart), but per explicit direction
-  // not to be precious about EXACT centering, top/bottom padding is now
-  // asymmetric: more padding-top than padding-bottom nudges the whole block
-  // down a little (padding-top minus padding-bottom, halved, is the actual
-  // shift — see the math worked out when this was tuned), while padding-
-  // bottom itself is generous specifically to keep the disclaimer clear of
-  // a rendering artifact reported right at the bezel's bottom inner edge on
-  // a real device (not reproduced in headless testing, so sized with margin
-  // rather than trimmed to a measured minimum).
+  // container; the MAIN/vertical axis defaults to flex-start). That's fixed
+  // (see below), but the centering trick was DROPPED again per the latest
+  // explicit direction: the top area (Name/測定日/PDF row) is confirmed OK
+  // as-is, and 右耳/左耳 + the disclaimer should move further down — not by
+  // adding blank padding below them (that was tried and explicitly rejected:
+  // "文章の下に余白が欲しいわけではありません"), but by the graph itself
+  // growing to occupy the space. With justify-content:center, growing the
+  // block would have re-centered it and pulled the TOP rows down too/up by
+  // half the delta — wrong per "EXITは高さ調整には関係しないようにして" and
+  // "above is fine" from this round. So: back to top-anchored (flex-start,
+  // matching PC's own default), fixed padding-top, small padding-bottom (no
+  // longer a deliberate buffer — see the overflow-x note below for what
+  // actually caused the reported line), and a bigger gap so the graph and
+  // the rows below it have room to grow downward from a fixed top anchor.
+  //
+  // The "白い線" the user reported is real, and reproduces in headless
+  // Chrome once actually looked for (previous round's screenshot attempt
+  // didn't drive far enough into the flow to catch it): the disclaimer's
+  // white-space:nowrap forces its box to its full unwrapped text width,
+  // which was ~33px WIDER than this container — and per the CSS overflow
+  // spec, setting only overflow-y (not overflow-x) forces the omitted axis
+  // to computed 'auto' too, so the browser silently painted a horizontal
+  // scrollbar under the text. Fixed at the source (disclaimer font-size
+  // trimmed to actually fit, verified via scrollWidth vs clientWidth in
+  // headless Chrome) plus explicit overflow-x:hidden as a hard backstop so
+  // this exact bug class can't resurface from any future near-miss.
   return `
-  <div style="flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;align-items:center;${
-    vm.isTablet ? 'justify-content:center;' : ''
-  }gap:${vm.isTablet ? ts(vm, 10) : 18}px;padding:${vm.isTablet ? '70px 0 50px' : '8px 0 16px'};">
+  <div style="flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;align-items:center;gap:${
+    vm.isTablet ? ts(vm, 14) : 18
+  }px;padding:${vm.isTablet ? '70px 0 10px' : '8px 0 16px'};">
     ${resultHeader}
     <div style="display:flex;align-items:center;gap:${ts(vm, 24)}px;font-family:var(--font-mono);font-size:${ts(
     vm,
@@ -484,9 +493,9 @@ function renderHearDone(vm: ViewModel): string {
       <div style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border:2px solid var(--ear-l);display:inline-block;transform:rotate(45deg);"></span>左耳</div>
     </div>
     <div style="font-family:var(--font-mono);font-size:${
-      vm.isTablet ? ts(vm, 10) : ts(vm, 11)
+      vm.isTablet ? ts(vm, 9) : ts(vm, 11)
     }px;color:var(--text-dim);${
-    vm.isTablet ? 'white-space:nowrap;letter-spacing:-0.2px;' : 'max-width:700px;'
+    vm.isTablet ? 'white-space:nowrap;letter-spacing:-0.4px;' : 'max-width:700px;'
   }text-align:center;line-height:1.8;">※相対値による簡易チェックです。絶対的な聴力レベル(dB HL)ではなく、使用機器での聞こえ方の左右差・帯域バランスの目安としてご覧ください。医療機関の検査結果とは一致しません。</div>
   </div>`;
 }
