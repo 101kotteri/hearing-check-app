@@ -32,7 +32,7 @@ const NO_RESPONSE_ARROW = `<path d="M7 1 L7 11 M2 7 L7 12 L12 7" stroke-width="2
 // report or the graph block, which have their own separate scale story) size
 // up by that same 1.3x on tablet — applied via this helper at each call site
 // rather than duplicating whole style strings per screen.
-const TABLET_TEXT_SCALE = 1.3;
+const TABLET_TEXT_SCALE = 1.5;
 function ts(vm: ViewModel, pxVal: number): number {
   return vm.isTablet ? Math.round(pxVal * TABLET_TEXT_SCALE) : pxVal;
 }
@@ -347,7 +347,7 @@ export function renderHearGraphBlock(vm: ViewModel): string {
 // screen keeps the graph at its native 900x300 size (renderHearGraphBlock's
 // own coordinate system, shared with print), same nested-scale-wrapper
 // technique the mobile results screen already uses.
-const TABLET_GRAPH_SCALE = 1.2;
+const TABLET_GRAPH_SCALE = 1.35;
 const TABLET_GRAPH_W = 900;
 const TABLET_GRAPH_H = 300;
 
@@ -362,20 +362,38 @@ function renderHearDone(vm: ViewModel): string {
       </div>`
     : renderHearGraphBlock(vm);
 
+  // iPad: partial-results warning sits to the right of 測定結果 on one row
+  // (mirroring the phone results screen's top-right placement) instead of
+  // stacked as its own centered line below it — saves a row of height,
+  // freed up for the graph. PC keeps its original two-line layout exactly.
+  const resultHeader = vm.isTablet
+    ? `<div style="display:flex;align-items:baseline;gap:${ts(vm, 16)}px;">
+        <span style="font-family:var(--font-mono);font-size:${ts(
+          vm,
+          13
+        )}px;letter-spacing:4px;color:var(--text-dim);">測定結果</span>
+        ${
+          vm.hearIsPartial
+            ? `<span style="font-family:var(--font-mono);font-size:${ts(
+                vm,
+                11
+              )}px;color:var(--bad);letter-spacing:1px;">※途中で停止したため、一部の周波数は未測定です</span>`
+            : ''
+        }
+      </div>`
+    : `<div style="font-family:var(--font-mono);font-size:13px;letter-spacing:4px;color:var(--text-dim);">測定結果</div>
+    ${
+      vm.hearIsPartial
+        ? `<div style="font-family:var(--font-mono);font-size:11px;color:var(--bad);letter-spacing:1px;">※途中で停止したため、一部の周波数は未測定です</div>`
+        : ''
+    }`;
+
   return `
   <div style="flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;align-items:center;gap:${ts(
     vm,
     18
   )}px;padding:8px 0 16px;">
-    <div style="font-family:var(--font-mono);font-size:${ts(vm, 13)}px;letter-spacing:4px;color:var(--text-dim);">測定結果</div>
-    ${
-      vm.hearIsPartial
-        ? `<div style="font-family:var(--font-mono);font-size:${ts(
-            vm,
-            11
-          )}px;color:var(--bad);letter-spacing:1px;">※途中で停止したため、一部の周波数は未測定です</div>`
-        : ''
-    }
+    ${resultHeader}
     <div style="display:flex;align-items:center;gap:${ts(vm, 24)}px;font-family:var(--font-mono);font-size:${ts(
     vm,
     15
@@ -404,10 +422,11 @@ function renderHearDone(vm: ViewModel): string {
       <div style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;border:2px solid var(--bad);display:inline-block;"></span>右耳</div>
       <div style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border:2px solid var(--ear-l);display:inline-block;transform:rotate(45deg);"></span>左耳</div>
     </div>
-    <div style="font-family:var(--font-mono);font-size:${ts(
-      vm,
-      11
-    )}px;color:var(--text-dim);max-width:700px;text-align:center;line-height:1.8;">※相対値による簡易チェックです。絶対的な聴力レベル(dB HL)ではなく、使用機器での聞こえ方の左右差・帯域バランスの目安としてご覧ください。医療機関の検査結果とは一致しません。</div>
+    <div style="font-family:var(--font-mono);font-size:${
+      vm.isTablet ? ts(vm, 10) : ts(vm, 11)
+    }px;color:var(--text-dim);${
+    vm.isTablet ? 'white-space:nowrap;letter-spacing:-0.2px;' : 'max-width:700px;'
+  }text-align:center;line-height:1.8;">※相対値による簡易チェックです。絶対的な聴力レベル(dB HL)ではなく、使用機器での聞こえ方の左右差・帯域バランスの目安としてご覧ください。医療機関の検査結果とは一致しません。</div>
   </div>`;
 }
 
