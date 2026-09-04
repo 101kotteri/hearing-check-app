@@ -332,7 +332,7 @@ export class App {
     // button's press nor the orange buttons' glow burst was ever visible.
     // A manual class (CSS :active alone ends the instant the pointer lifts,
     // before click even fires) plus a short held-back dispatch fixes both.
-    if (target.classList.contains('eg-back-btn')) {
+    if (target.classList.contains('eg-back-btn') || target.classList.contains('eg-lang-btn')) {
       target.classList.add('is-pressed');
       window.setTimeout(() => this.dispatchAction(action, value), 140);
       return;

@@ -52,15 +52,18 @@ export function renderRaisedBackButton(action: string, label: string): string {
 }
 
 // Language switcher, shown only on each device tier's first interactive
-// screen (PC's gate, mobile/tablet's intro) per explicit direction — NOT in
-// any topbar, which is already tight on space and was the source of a real
-// overlap bug earlier this session (see renderHearTopBar's grid-layout
-// fix). Closed state shows the bare locale code (matches the app's
-// device-panel monospace-code aesthetic); the open dropdown shows each
-// language's own native name so a viewer can find their language without
-// reading any of the others. Caller positions this (position:relative root,
-// so the dropdown's own position:absolute is relative to THIS component,
-// not the caller) — see each call site for the exact top/right offsets.
+// screen after any login step — PC's explanation screen (moved here from
+// the gate screen per a follow-up request, so it sits alongside where
+// mobile/tablet already show it), mobile/tablet's intro — per explicit
+// direction, NOT in any topbar row's general flow (it lives inside
+// renderHearTopBar for tablet/PC only to share that overlay's stacking
+// context — see the tablet click-swallowing bug noted there — not because
+// it's conceptually topbar content). Closed-state button uses the shared
+// .eg-back-btn-style raised/3D look (.eg-lang-btn, style.css) rather than a
+// flat bordered box, and shows each language's own native name (not a
+// locale-code abbreviation) so it reads the same whether open or closed.
+// Caller positions this (position:relative root, so the dropdown's own
+// position:absolute is relative to THIS component, not the caller).
 export function renderLocaleSwitcher(vm: ViewModel): string {
   const menu = vm.localeMenuOpen
     ? `<div style="position:absolute;top:100%;right:0;margin-top:6px;background:var(--panel);border:1px solid var(--line);border-radius:2px;overflow:hidden;min-width:130px;">
@@ -77,21 +80,17 @@ export function renderLocaleSwitcher(vm: ViewModel): string {
     : '';
   return `
   <div style="position:relative;">
-    <div data-action="toggleLocaleMenu" style="cursor:pointer;font-family:var(--font-mono);font-size:${ts(
-      vm,
-      12
-    )}px;letter-spacing:1px;color:var(--text-dim);border:1px solid var(--line);border-radius:2px;padding:${ts(
+    <div data-action="toggleLocaleMenu" class="eg-lang-btn" style="gap:${ts(vm, 6)}px;font-size:${ts(
     vm,
-    6
-  )}px ${ts(vm, 10)}px;">${vm.locale.toUpperCase()} ▾</div>
+    12
+  )}px;letter-spacing:1px;padding:${ts(vm, 6)}px ${ts(vm, 10)}px;">${LANGUAGE_LABELS[vm.locale]} ▾</div>
     ${menu}
   </div>`;
 }
 
-function renderGate(s: AppState, vm: ViewModel): string {
+function renderGate(s: AppState): string {
   return `
   <div style="position:relative;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:36px;">
-    <div style="position:absolute;top:24px;right:40px;">${renderLocaleSwitcher(vm)}</div>
     <div style="display:flex;flex-direction:column;align-items:center;gap:14px;">
       ${EAR_WAVE_ICON}
       <div style="font-family:var(--font-mono);font-size:12px;letter-spacing:5px;color:var(--text-dim);">AUDIOMETRIC SELF-TEST</div>
@@ -187,8 +186,16 @@ function renderHearTopBar(vm: ViewModel): string {
     </div>`;
   }
 
+  // PC's language switcher (see renderLocaleSwitcher) replaces this row's
+  // right-side slot on the intro screen specifically — moved here from the
+  // gate screen per a follow-up request. Row height relaxes to fit the
+  // switcher's own (taller, raised-button) height on intro; every other
+  // screen keeps the original tight 14px row unchanged.
+  const rightSlot = vm.isHearIntro ? renderLocaleSwitcher(vm) : stopLink;
   return `
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;height:14px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;height:${
+    vm.isHearIntro ? 'auto' : '14px'
+  };">
     <div data-action="${backAction}" class="eg-link" style="cursor:pointer;display:flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:12px;letter-spacing:2px;color:var(--text-dim);">
       ${BACK_ICON}
       ${backLabel}
@@ -196,7 +203,7 @@ function renderHearTopBar(vm: ViewModel): string {
     <div style="font-family:var(--font-mono);font-size:12px;letter-spacing:4px;color:var(--text-dim);">${vm.t(
       'nav.heading'
     )}</div>
-    ${stopLink}
+    ${rightSlot}
   </div>`;
 }
 
@@ -719,7 +726,7 @@ export function renderPrintReport(vm: ViewModel): string {
 }
 
 export function renderScreenContent(s: AppState, vm: ViewModel): string {
-  if (vm.isGate) return renderGate(s, vm);
+  if (vm.isGate) return renderGate(s);
 
   let stepHtml = '';
   if (vm.isHearIntro) stepHtml = renderHearIntro(vm);
