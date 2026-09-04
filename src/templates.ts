@@ -430,15 +430,22 @@ export function renderHearGraphBlock(vm: ViewModel): string {
 // but worth knowing if it's ever revisited.
 const TABLET_GRAPH_SCALE_X = 1.35;
 const TABLET_GRAPH_SCALE_Y = 1.7;
+// Non-ja locales need more room for a taller wrapped disclaimer (see
+// renderHearDone) — rather than steal that room from the top padding (which
+// visibly cramped the 測定結果/Name row spacing that ja's 70px was tuned
+// for — reported directly), the graph itself gives up a little height
+// instead, keeping padding-top at the same 70px for every locale.
+const TABLET_GRAPH_SCALE_Y_WIDE = 1.65;
 const TABLET_GRAPH_W = 900;
 const TABLET_GRAPH_H = 300;
 
 function renderHearDone(vm: ViewModel): string {
+  const tabletGraphScaleY = vm.locale === 'ja' ? TABLET_GRAPH_SCALE_Y : TABLET_GRAPH_SCALE_Y_WIDE;
   const graphBlock = vm.isTablet
     ? `<div style="width:${TABLET_GRAPH_W * TABLET_GRAPH_SCALE_X}px;height:${
-        TABLET_GRAPH_H * TABLET_GRAPH_SCALE_Y
+        TABLET_GRAPH_H * tabletGraphScaleY
       }px;flex-shrink:0;overflow:visible;">
-        <div style="width:${TABLET_GRAPH_W}px;transform:scale(${TABLET_GRAPH_SCALE_X}, ${TABLET_GRAPH_SCALE_Y});transform-origin:top left;">
+        <div style="width:${TABLET_GRAPH_W}px;transform:scale(${TABLET_GRAPH_SCALE_X}, ${tabletGraphScaleY});transform-origin:top left;">
           ${renderHearGraphBlock(vm)}
         </div>
       </div>`
@@ -494,12 +501,12 @@ function renderHearDone(vm: ViewModel): string {
   <div style="flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;align-items:center;gap:${
     vm.isTablet ? ts(vm, 14) : 18
   }px;padding:${
-    // The 70px top padding was tuned specifically to satisfy "top area is
-    // fine as-is" for Japanese — every other locale's disclaimer runs onto
-    // more lines at the same width (verified: German wraps to 3 lines vs
-    // ja's tuned single line), which doesn't fit the same fixed 771px
-    // budget without reclaiming some of that top padding back.
-    vm.isTablet ? (vm.locale === 'ja' ? '70px 0 10px' : '36px 0 10px') : '8px 0 16px'
+    // 70px top padding is the same for every locale (a per-locale reduction
+    // was tried first to make room for non-ja's taller wrapped disclaimer,
+    // but that visibly cramped the 測定結果/Name row spacing — reported
+    // directly. The graph's own height gives up the room instead — see
+    // TABLET_GRAPH_SCALE_Y_WIDE — so top spacing stays consistent everywhere.
+    vm.isTablet ? '70px 0 10px' : '8px 0 16px'
   };">
     ${resultHeader}
     <div style="display:flex;align-items:center;gap:${ts(vm, 24)}px;font-family:var(--font-mono);font-size:${ts(
