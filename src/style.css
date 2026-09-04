@@ -25,6 +25,17 @@
 
 * {
   box-sizing: border-box;
+  /* WebKit shows its own translucent gray "tap highlight" flash on any
+     tappable element by default, entirely separate from this app's own
+     custom press animations (is-pressed's translateY+shadow sink,
+     is-glowing's burst). Invisible on desktop Chrome/Safari (where this
+     app's usual testing happens), but live in a Capacitor iOS WKWebView —
+     the two overlapping is what read as a button visibly "shaking twice"
+     on real-device/simulator testing (language switcher, calibrate-onward
+     EXIT). Silencing WebKit's own highlight leaves only this app's
+     deliberate feedback.
+  */
+  -webkit-tap-highlight-color: transparent;
 }
 
 html,
@@ -34,6 +45,25 @@ body {
   padding: 0;
   height: 100%;
   overflow: hidden;
+  /* WebKit's mobile "text autosizing" heuristic inflates the font size of
+     multi-line text blocks it judges too small to read comfortably in a
+     narrow column — invisible on desktop Safari/Chrome (where this app's
+     whole test suite runs), but very much live inside a Capacitor iOS
+     WKWebView. Confirmed via real-device/simulator testing: only the
+     intro screen's multi-line instruction paragraph got inflated (never
+     the single-line title, button, or disclaimer), the boost ratio scaled
+     with each locale's text length (fine for short zh/ja, so severe for
+     en/de/es that the button became unreachable), and it reset whenever
+     unrelated DOM content was replaced (e.g. via the language switcher) —
+     all textbook text-autosizing, not a zoom gesture (a native pinch/
+     double-tap-zoom fix was tried first and made no difference, since
+     that's an unrelated mechanism entirely). This app already sizes every
+     screen deliberately via its own fixed-canvas + ts()/locale-aware
+     scaling, so any further automatic boosting on top of that is pure
+     bug, not a legitimate accessibility win here.
+  */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 #app {
@@ -97,11 +127,28 @@ button {
     inset 0 -6px 10px rgba(0, 0, 0, 0.25);
   transition: transform 0.08s ease, box-shadow 0.08s ease, color 0.15s ease, border-color 0.15s ease;
 }
-.eg-back-btn:hover {
-  border-color: var(--accent);
-}
-.eg-back-btn:active,
 .eg-back-btn.is-pressed {
+  /* Deliberately NOT :active too (it was here before) — real-device/
+     simulator testing found the button visibly moving TWICE on iPhone:
+     native :active fires instantly on touchstart and reverts the instant
+     the finger lifts (before the click event even fires), then this
+     JS-added .is-pressed class — added inside the click handler, so only
+     AFTER release — kicks in a beat later, producing a sink/release/sink
+     double-motion. iPad never showed it, almost certainly because
+     whatever iOS-Safari-family quirk requires for :active to engage at
+     all (classically, some touch/click handler present in the page)
+     wasn't satisfied in that render path — rather than chase exactly
+     why, removing the native trigger entirely and keeping only this
+     app's own deliberate, single, JS-timed animation removes the
+     platform difference at the root. The originally-intended feedback
+     was the button's own fill turning blue (--ear-l, the palette's only
+     blue token), border staying orange (matching :hover's own
+     border-color, not switching to blue too) — as a translucent wash,
+     not a solid fill (the solid version, first tried, read as too flat/
+     opaque compared to how this looked in the mobile WebApp browser
+     originally). */
+  background: oklch(0.62 0.14 250 / 0.5);
+  border-color: var(--accent);
   transform: translateY(4px);
   box-shadow: 0 0 0 oklch(0.1 0.006 260), 0 2px 4px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.1),
     inset 0 3px 8px rgba(0, 0, 0, 0.4);
@@ -119,12 +166,17 @@ button {
     inset 0 -4px 8px rgba(0, 0, 0, 0.22);
   transition: transform 0.08s ease, box-shadow 0.08s ease, border-color 0.15s ease, color 0.15s ease;
 }
-.eg-lang-btn:hover {
-  border-color: var(--accent);
-  color: var(--text);
-}
-.eg-lang-btn:active,
 .eg-lang-btn.is-pressed {
+  /* No :hover either (removed — a lingering mouse cursor after a click,
+     in simulator/desktop testing, kept re-matching :hover on the freshly
+     re-rendered element, reading as the orange border getting "stuck" on
+     a second press. Real touch never has this problem — no persistent
+     hover position after a finger lifts — so losing hover's cosmetic-only
+     feedback here costs nothing on the devices that actually use this
+     button. Same fix as .eg-back-btn above for :active — no native
+     trigger, only this app's own JS-timed .is-pressed animation. */
+  background: oklch(0.62 0.14 250 / 0.5);
+  border-color: var(--accent);
   transform: translateY(3px);
   box-shadow: 0 0 0 oklch(0.1 0.006 260), 0 1px 3px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08),
     inset 0 2px 6px rgba(0, 0, 0, 0.35);

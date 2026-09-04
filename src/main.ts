@@ -5,6 +5,15 @@ import { detectLocale } from './i18n';
 const root = document.querySelector<HTMLDivElement>('#app');
 if (!root) throw new Error('#app root element not found');
 
+// The viewport meta tag's user-scalable=no stops pinch zoom in Mobile
+// Safari, but WKWebView (what the Capacitor-wrapped iOS app actually
+// renders into) doesn't fully honor it — a real native-side fix lives in
+// ios/App/App/MainViewController.swift (disables the WKWebView's own zoom
+// gesture recognizers), but WebKit's 'gesturestart' pinch event is a cheap,
+// harmless second layer of defense in the same browser-only build this
+// file already ships to, so it costs nothing to keep here too.
+document.addEventListener('gesturestart', (e) => e.preventDefault());
+
 // WebApp is PC-oriented; a real phone previews the future native (Capacitor)
 // app instead of getting a scaled-down copy of the PC chassis. `?mobile` (or
 // `?mobile=1`) forces the phone view from any browser/window, for previewing

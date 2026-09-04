@@ -339,6 +339,17 @@ export class App {
     }
     if (target.classList.contains('eg-btn-glow')) {
       target.classList.add('is-glowing');
+      // Briefly cut to 40ms while chasing a wrong hypothesis about the
+      // real-device "screen zooms in on tap" bug (see style.css's
+      // -webkit-text-size-adjust comment for the actual cause — WebKit's
+      // mobile text-autosizing, nothing to do with this delay at all).
+      // Restored to 220ms: eg-btn-glow-burst's keyframe animation runs
+      // 0.5s (see style.css) — cutting the delay to 40ms meant the state
+      // change (and the DOM replacement that comes with it) fired while
+      // the glow animation had barely started, so it never got a chance
+      // to render at all. 220ms is still well short of the 0.5s animation,
+      // but long enough for the burst to be visibly underway before the
+      // element is replaced.
       window.setTimeout(() => this.dispatchAction(action, value), 220);
       return;
     }
