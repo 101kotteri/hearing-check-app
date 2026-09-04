@@ -42,6 +42,11 @@ export interface AppState {
   // for the same reason isTablet is — templates.ts/mobileTemplates.ts only
   // ever receive AppState/ViewModel, never a device/locale flag directly.
   locale: Locale;
+  // Transient UI state for the in-app language-switcher dropdown (see
+  // templates.ts's renderLocaleSwitcher) — not part of the hearing flow, so
+  // not reset by createInitialHearingState the way hearStep/hearResults etc.
+  // are on EXIT/retry.
+  localeMenuOpen: boolean;
 }
 
 export function createInitialHearingState(): Pick<
@@ -77,6 +82,7 @@ export function createInitialState(isMobile: boolean, isTablet: boolean = false,
     passwordError: false,
     isTablet,
     locale,
+    localeMenuOpen: false,
     ...createInitialHearingState(),
   };
 }

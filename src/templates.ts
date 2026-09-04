@@ -1,6 +1,6 @@
 import type { AppState } from './types';
 import type { ViewModel } from './viewModel';
-import { translate } from './i18n';
+import { LANGUAGE_LABELS, SUPPORTED_LOCALES, translate } from './i18n';
 
 export function escapeHtml(str: string): string {
   return str
@@ -51,9 +51,47 @@ export function renderRaisedBackButton(action: string, label: string): string {
   </div>`;
 }
 
-function renderGate(s: AppState): string {
+// Language switcher, shown only on each device tier's first interactive
+// screen (PC's gate, mobile/tablet's intro) per explicit direction — NOT in
+// any topbar, which is already tight on space and was the source of a real
+// overlap bug earlier this session (see renderHearTopBar's grid-layout
+// fix). Closed state shows the bare locale code (matches the app's
+// device-panel monospace-code aesthetic); the open dropdown shows each
+// language's own native name so a viewer can find their language without
+// reading any of the others. Caller positions this (position:relative root,
+// so the dropdown's own position:absolute is relative to THIS component,
+// not the caller) — see each call site for the exact top/right offsets.
+export function renderLocaleSwitcher(vm: ViewModel): string {
+  const menu = vm.localeMenuOpen
+    ? `<div style="position:absolute;top:100%;right:0;margin-top:6px;background:var(--panel);border:1px solid var(--line);border-radius:2px;overflow:hidden;min-width:130px;">
+        ${SUPPORTED_LOCALES.map(
+          (loc) =>
+            `<div data-action="setLocale" data-value="${loc}" style="padding:${ts(vm, 8)}px ${ts(
+              vm,
+              14
+            )}px;font-family:var(--font-mono);font-size:${ts(vm, 12)}px;cursor:pointer;white-space:nowrap;color:${
+              loc === vm.locale ? 'var(--accent)' : 'var(--text-dim)'
+            };background:${loc === vm.locale ? 'var(--panel-2)' : 'transparent'};">${LANGUAGE_LABELS[loc]}</div>`
+        ).join('')}
+      </div>`
+    : '';
+  return `
+  <div style="position:relative;">
+    <div data-action="toggleLocaleMenu" style="cursor:pointer;font-family:var(--font-mono);font-size:${ts(
+      vm,
+      12
+    )}px;letter-spacing:1px;color:var(--text-dim);border:1px solid var(--line);border-radius:2px;padding:${ts(
+    vm,
+    6
+  )}px ${ts(vm, 10)}px;">${vm.locale.toUpperCase()} ▾</div>
+    ${menu}
+  </div>`;
+}
+
+function renderGate(s: AppState, vm: ViewModel): string {
   return `
   <div style="position:relative;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:36px;">
+    <div style="position:absolute;top:24px;right:40px;">${renderLocaleSwitcher(vm)}</div>
     <div style="display:flex;flex-direction:column;align-items:center;gap:14px;">
       ${EAR_WAVE_ICON}
       <div style="font-family:var(--font-mono);font-size:12px;letter-spacing:5px;color:var(--text-dim);">AUDIOMETRIC SELF-TEST</div>
@@ -112,6 +150,17 @@ function renderHearTopBar(vm: ViewModel): string {
     // trade-off is the title centers within its own column rather than the
     // full row when the warning column's width differs from EXIT's, a minor
     // visual nuance next to actually-unreadable overlapping text.
+    // Language switcher lives HERE (intro only, third grid column) rather
+    // than as its own separate absolutely-positioned overlay inside
+    // renderHearIntro — a first attempt did that and the switcher's clicks
+    // were silently swallowed: this topbar is its own overlay painted AFTER
+    // (so visually on top of) the content wrapper in renderScreenContent's
+    // tablet branch, and its own row-shaped bounding box covers the same
+    // top-right area regardless of how little of it is visibly filled,
+    // intercepting the click before it ever reached the switcher underneath
+    // (confirmed via elementsFromPoint — two of this topbar's own empty
+    // divs sat above it in the hit-test stack). Putting the switcher inside
+    // this same overlay sidesteps the stacking conflict entirely.
     const resultTitle = vm.isHearDone
       ? `<span style="text-align:center;font-family:var(--font-mono);font-size:${ts(
           vm,
@@ -125,7 +174,9 @@ function renderHearTopBar(vm: ViewModel): string {
               )}px;color:var(--bad);letter-spacing:1px;">${vm.t('nav.partialWarning')}</span>`
             : '<span></span>'
         }`
-      : '<span></span><span></span>';
+      : vm.isHearIntro
+        ? `<span></span><div style="justify-self:end;">${renderLocaleSwitcher(vm)}</div>`
+        : '<span></span><span></span>';
     return `
     <div style="display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:${ts(
       vm,
@@ -150,6 +201,9 @@ function renderHearTopBar(vm: ViewModel): string {
 }
 
 function renderHearIntro(vm: ViewModel): string {
+  // Tablet's language switcher lives in renderHearTopBar (intro-gated grid
+  // column), not here — see the comment there for why a separate overlay in
+  // this function silently ate the switcher's clicks.
   return `
   <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:${ts(
     vm,
@@ -665,7 +719,7 @@ export function renderPrintReport(vm: ViewModel): string {
 }
 
 export function renderScreenContent(s: AppState, vm: ViewModel): string {
-  if (vm.isGate) return renderGate(s);
+  if (vm.isGate) return renderGate(s, vm);
 
   let stepHtml = '';
   if (vm.isHearIntro) stepHtml = renderHearIntro(vm);

@@ -11,6 +11,7 @@ import {
   breatheDelayStyle,
   escapeHtml,
   renderHearGraphBlock,
+  renderLocaleSwitcher,
   renderRaisedBackButton,
 } from './templates';
 import type { ViewModel } from './viewModel';
@@ -90,6 +91,9 @@ function renderMobileBottomSpacer(): string {
 export function renderMobileIntro(vm: ViewModel): string {
   return `
   <div style="position:relative;width:100%;height:100%;display:flex;flex-direction:column;">
+    <div style="position:absolute;top:24px;right:48px;transform:scale(1.8);transform-origin:top right;">${renderLocaleSwitcher(
+      vm
+    )}</div>
     ${renderMobileTopBar(vm)}
     <div style="flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;max-width:1180px;margin:0 auto;text-align:center;padding:0 40px;">
       <div style="font-size:26px;font-weight:700;letter-spacing:1px;">${vm.t('intro.title')}</div>

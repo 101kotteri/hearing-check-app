@@ -380,6 +380,12 @@ export class App {
       case 'printHearingReport':
         this.printHearingReport();
         break;
+      case 'toggleLocaleMenu':
+        this.setState({ localeMenuOpen: !this.state.localeMenuOpen });
+        break;
+      case 'setLocale':
+        this.setState({ locale: value as Locale, localeMenuOpen: false });
+        break;
     }
   }
 

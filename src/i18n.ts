@@ -8,6 +8,20 @@ export type Locale = 'ja' | 'en' | 'zh' | 'de' | 'ko' | 'es';
 
 export const SUPPORTED_LOCALES: Locale[] = ['ja', 'en', 'zh', 'de', 'ko', 'es'];
 
+// Each language's own native name — used in the in-app language switcher's
+// dropdown so a viewer can recognize their own language even without
+// reading any of the others (the switcher's closed-state button shows the
+// bare locale code instead, e.g. "EN", matching the app's device-panel
+// monospace-code aesthetic).
+export const LANGUAGE_LABELS: Record<Locale, string> = {
+  ja: '日本語',
+  en: 'English',
+  zh: '中文',
+  de: 'Deutsch',
+  ko: '한국어',
+  es: 'Español',
+};
+
 // English, not Japanese, is the fallback for a browser/OS language this app
 // doesn't otherwise recognize — Japanese stays available for anyone whose
 // language actually matches it, but an unmatched user (French/Italian/etc.,
