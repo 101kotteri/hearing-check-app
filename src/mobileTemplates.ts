@@ -271,7 +271,7 @@ export function renderMobileDone(vm: ViewModel): string {
       // the tuned nowrap one-liner only actually fits Japanese-length text at
       // this size — every other locale wraps normally rather than silently
       // overflowing past the frame-less canvas's clipped edge.
-      vm.locale === 'ja' ? 'white-space:nowrap;' : 'max-width:1100px;margin:0 auto;'
+      vm.locale === 'ja' ? 'white-space:nowrap;' : 'max-width:1250px;margin:0 auto;'
     }">${vm.t('done.disclaimer')}</div>
   </div>`;
 }
