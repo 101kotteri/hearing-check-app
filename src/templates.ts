@@ -1,5 +1,6 @@
 import type { AppState } from './types';
 import type { ViewModel } from './viewModel';
+import { translate } from './i18n';
 
 export function escapeHtml(str: string): string {
   return str
@@ -65,7 +66,10 @@ function renderGate(s: AppState): string {
       <button data-action="submitPassword" class="eg-btn" style="width:100%;background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:3px;font-size:13px;padding:15px 0;cursor:pointer;border-radius:2px;">SUBMIT</button>
       ${
         s.passwordError
-          ? `<div style="color:var(--bad);font-family:var(--font-mono);font-size:12px;letter-spacing:1px;">パスワードが違います</div>`
+          ? `<div style="color:var(--bad);font-family:var(--font-mono);font-size:12px;letter-spacing:1px;">${translate(
+              s.locale,
+              'gate.passwordError'
+            )}</div>`
           : ''
       }
     </div>
@@ -74,12 +78,12 @@ function renderGate(s: AppState): string {
 
 function renderHearTopBar(vm: ViewModel): string {
   const backAction = vm.isHearCalibrate ? 'goBackToHearSetup' : 'goToGate';
-  const backLabel = vm.isHearCalibrate ? '戻る' : 'EXIT';
+  const backLabel = vm.isHearCalibrate ? vm.t('nav.back') : 'EXIT';
   const stopLink = vm.hearShowStop
     ? `<div data-action="stopHearingTest" class="eg-link" style="cursor:pointer;font-family:var(--font-mono);font-size:${ts(
         vm,
         12
-      )}px;letter-spacing:2px;color:var(--bad);">■ 緊急停止</div>`
+      )}px;letter-spacing:2px;color:var(--bad);">■ ${vm.t('nav.stop')}</div>`
     : `<div style="width:${ts(vm, 70)}px;"></div>`;
 
   // iPad: the raised touch-friendly back button (shared with the phone UI —
@@ -99,22 +103,34 @@ function renderHearTopBar(vm: ViewModel): string {
     // edge — per a follow-up request, rather than both being packed
     // left-aligned right after EXIT. renderHearDone no longer renders its
     // own copy for tablet (see resultHeader there).
+    // Grid, not absolute-positioned spans: an earlier version centered the
+    // title with left:50% and pinned the warning with right:0 independently,
+    // which held up fine for short Japanese text but silently overlapped for
+    // longer translations (confirmed via Puppeteer: German's "Messergebnis" +
+    // its much longer partial-warning sentence collided mid-row). A 3-column
+    // grid (EXIT | title | warning) can't overlap by construction — the
+    // trade-off is the title centers within its own column rather than the
+    // full row when the warning column's width differs from EXIT's, a minor
+    // visual nuance next to actually-unreadable overlapping text.
     const resultTitle = vm.isHearDone
-      ? `<span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:var(--font-mono);font-size:${ts(
+      ? `<span style="text-align:center;font-family:var(--font-mono);font-size:${ts(
           vm,
           13
-        )}px;letter-spacing:4px;color:var(--text-dim);white-space:nowrap;">測定結果</span>
+        )}px;letter-spacing:4px;color:var(--text-dim);">${vm.t('nav.resultTitle')}</span>
         ${
           vm.hearIsPartial
-            ? `<span style="position:absolute;right:0;top:50%;transform:translateY(-50%);white-space:nowrap;font-family:var(--font-mono);font-size:${ts(
+            ? `<span style="text-align:right;font-family:var(--font-mono);font-size:${ts(
                 vm,
                 11
-              )}px;color:var(--bad);letter-spacing:1px;">※途中で停止したため、一部の周波数は未測定です</span>`
-            : ''
+              )}px;color:var(--bad);letter-spacing:1px;">${vm.t('nav.partialWarning')}</span>`
+            : '<span></span>'
         }`
-      : '';
+      : '<span></span><span></span>';
     return `
-    <div style="position:relative;display:flex;align-items:center;margin-bottom:22px;">
+    <div style="display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:${ts(
+      vm,
+      16
+    )}px;margin-bottom:22px;">
       ${renderRaisedBackButton(backAction, backLabel)}
       ${resultTitle}
     </div>`;
@@ -126,7 +142,9 @@ function renderHearTopBar(vm: ViewModel): string {
       ${BACK_ICON}
       ${backLabel}
     </div>
-    <div style="font-family:var(--font-mono);font-size:12px;letter-spacing:4px;color:var(--text-dim);">聴力チェック</div>
+    <div style="font-family:var(--font-mono);font-size:12px;letter-spacing:4px;color:var(--text-dim);">${vm.t(
+      'nav.heading'
+    )}</div>
     ${stopLink}
   </div>`;
 }
@@ -137,28 +155,30 @@ function renderHearIntro(vm: ViewModel): string {
     vm,
     22
   )}px;max-width:${ts(vm, 620)}px;margin:0 auto;text-align:center;">
-    <div style="font-size:${ts(vm, 24)}px;font-weight:700;letter-spacing:1px;">簡易聴力チェック</div>
+    <div style="font-size:${ts(vm, 24)}px;font-weight:700;letter-spacing:1px;">${vm.t('intro.title')}</div>
     <div style="font-family:var(--font-mono);font-size:${ts(
       vm,
       14
     )}px;color:var(--text-dim);line-height:2.1;text-align:left;">
-      ・ヘッドホンまたはイヤホンを装着してください<br/>
-      ・右耳→左耳の順に、低い音から高い音まで自動で測定します<br/>
-      ・音が聞こえたら「聞こえたら押す${vm.isTablet ? '' : '（Spaceキー）'}」ボタンを押してください<br/>
-      ・聞こえない場合は何もしなくて大丈夫です（自動的に次に進みます）<br/>
-      ・所要時間の目安は3〜5分です<br/>
-      ・体調に異変を感じたら、いつでも「緊急停止」で中断できます
+      ${vm.t('intro.bullet1')}<br/>
+      ${vm.t('intro.bullet2')}<br/>
+      ${vm.t('intro.bullet3', {
+        btn: vm.t('measure.heardButton') + (vm.isTablet ? '' : vm.t('intro.spaceKeyHint')),
+      })}<br/>
+      ${vm.t('intro.bullet4')}<br/>
+      ${vm.t('intro.bullet5')}<br/>
+      ${vm.t('intro.bullet6', { stopBtn: vm.t('nav.stop') })}
     </div>
     <div style="font-family:var(--font-mono);font-size:${ts(
       vm,
       13
-    )}px;color:var(--text-dim);line-height:1.8;white-space:nowrap;">※使用機器の音量設定に依存する相対的な簡易チェックです。医療機関の聴力検査の代わりにはなりません。</div>
+    )}px;color:var(--text-dim);line-height:1.8;">${vm.t('intro.disclaimer')}</div>
     <button data-action="goToHearSetup" class="eg-btn${
       vm.isTablet ? ' eg-btn-glow' : ''
     }" style="background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:${ts(
     vm,
     13
-  )}px;padding:${ts(vm, 14)}px ${ts(vm, 48)}px;cursor:pointer;border-radius:2px;">はじめる</button>
+  )}px;padding:${ts(vm, 14)}px ${ts(vm, 48)}px;cursor:pointer;border-radius:2px;">${vm.t('intro.startButton')}</button>
   </div>`;
 }
 
@@ -196,19 +216,19 @@ function renderHearSetup(vm: ViewModel): string {
     vm,
     26
   )}px;max-width:${ts(vm, 600)}px;margin:0 auto;text-align:center;">
-    <div style="font-size:${ts(vm, 20)}px;font-weight:700;letter-spacing:1px;">測定環境を選択してください</div>
+    <div style="font-size:${ts(vm, 20)}px;font-weight:700;letter-spacing:1px;">${vm.t('setup.title')}</div>
     <div style="display:flex;flex-direction:column;align-items:center;gap:${ts(vm, 10)}px;">
       <div style="font-family:var(--font-mono);font-size:${ts(
         vm,
         12
-      )}px;letter-spacing:1px;color:var(--text-dim);">再生機器</div>
+      )}px;letter-spacing:1px;color:var(--text-dim);">${vm.t('setup.deviceLabel')}</div>
       <div style="display:flex;gap:${ts(vm, 10)}px;">${deviceButtons}</div>
     </div>
     <div style="display:flex;flex-direction:column;align-items:center;gap:${ts(vm, 10)}px;">
       <div style="font-family:var(--font-mono);font-size:${ts(
         vm,
         12
-      )}px;letter-spacing:1px;color:var(--text-dim);">音質の特性</div>
+      )}px;letter-spacing:1px;color:var(--text-dim);">${vm.t('setup.listeningLabel')}</div>
       <div style="display:flex;gap:${ts(vm, 10)}px;">${listeningButtons}</div>
     </div>
     <button data-action="beginHearingCalibration" class="eg-btn${
@@ -216,7 +236,9 @@ function renderHearSetup(vm: ViewModel): string {
     }" style="background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:${ts(
     vm,
     13
-  )}px;padding:${ts(vm, 14)}px ${ts(vm, 48)}px;cursor:pointer;border-radius:2px;margin-top:8px;">OK（音が出ます）</button>
+  )}px;padding:${ts(vm, 14)}px ${ts(vm, 48)}px;cursor:pointer;border-radius:2px;margin-top:8px;">${vm.t(
+    'setup.confirmButton'
+  )}</button>
   </div>`;
 }
 
@@ -234,7 +256,7 @@ function renderHearCalibrate(vm: ViewModel): string {
       )}px;white-space:nowrap;background:var(--bad);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:${ts(
         vm,
         14
-      )}px;padding:${ts(vm, 16)}px ${ts(vm, 24)}px;cursor:pointer;border-radius:4px;">■ 緊急停止</button>`
+      )}px;padding:${ts(vm, 16)}px ${ts(vm, 24)}px;cursor:pointer;border-radius:4px;">■ ${vm.t('nav.stop')}</button>`
     : '';
 
   return `
@@ -253,16 +275,18 @@ function renderHearCalibrate(vm: ViewModel): string {
       </div>
       ${stopButton}
     </div>
-    <div style="font-size:${ts(vm, 16)}px;font-weight:700;">音量を調整してください</div>
+    <div style="font-size:${ts(vm, 16)}px;font-weight:700;">${vm.t('calibrate.title')}</div>
     <div style="font-family:var(--font-mono);font-size:${ts(vm, 13)}px;color:var(--text-dim);line-height:2;">
-      1kHzの基準音が鳴り続けています。<br/>ヘッドホン/イヤホンの音量を、無理なくはっきり聞き取れる<br/>「ちょうど良い」大きさに調整してください。<br/>調整後は測定が終わるまで機器の音量を変更しないでください。
+      ${vm.t('calibrate.body')}
     </div>
     <button data-action="confirmHearingCalibration" class="eg-btn${
       vm.isTablet ? ' eg-btn-glow' : ''
     }" style="background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:${ts(
     vm,
     13
-  )}px;padding:${ts(vm, 14)}px ${ts(vm, 48)}px;cursor:pointer;border-radius:2px;">この音量で測定を始める</button>
+  )}px;padding:${ts(vm, 14)}px ${ts(vm, 48)}px;cursor:pointer;border-radius:2px;">${vm.t(
+    'calibrate.confirmButton'
+  )}</button>
   </div>`;
 }
 
@@ -290,7 +314,7 @@ function renderHearMeasure(vm: ViewModel): string {
     <div style="font-family:var(--font-mono);font-size:${ts(
       vm,
       13
-    )}px;letter-spacing:2px;color:var(--text-dim);">${vm.hearEarLabel}耳 測定中 / ${vm.hearCurrentFreqLabel}</div>
+    )}px;letter-spacing:2px;color:var(--text-dim);">${vm.hearMeasureStatus}</div>
     <div style="width:${ts(vm, 360)}px;height:${ts(vm, 6)}px;background:var(--panel-2);border-radius:3px;overflow:hidden;">
       <div style="height:100%;width:${vm.hearProgressPct}%;background:var(--accent);transition:width 0.3s ease;"></div>
     </div>
@@ -306,15 +330,17 @@ function renderHearMeasure(vm: ViewModel): string {
       }" style="background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:${ts(
     vm,
     14
-  )}px;padding:${ts(vm, 16)}px 0;width:${ts(vm, 260)}px;cursor:pointer;border-radius:2px;">聞こえたら押す${
-    vm.isTablet ? '' : '（Spaceキー）'
-  }</button>
+  )}px;padding:${ts(vm, 16)}px 0;width:${ts(vm, 260)}px;cursor:pointer;border-radius:2px;">${vm.t(
+    'measure.heardButton'
+  )}${vm.isTablet ? '' : vm.t('intro.spaceKeyHint')}</button>
       <button data-action="stopHearingTest" class="eg-btn" style="background:var(--bad);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:${ts(
         vm,
         14
-      )}px;padding:${ts(vm, 16)}px ${ts(vm, 24)}px;cursor:pointer;border-radius:2px;">■ 緊急停止</button>
+      )}px;padding:${ts(vm, 16)}px ${ts(vm, 24)}px;cursor:pointer;border-radius:2px;">■ ${vm.t('nav.stop')}</button>
     </div>
-    <div style="font-family:var(--font-mono);font-size:${ts(vm, 11)}px;color:var(--text-dim);">聞こえなければ何もしなくて大丈夫です</div>
+    <div style="font-family:var(--font-mono);font-size:${ts(vm, 11)}px;color:var(--text-dim);">${vm.t(
+    'measure.hint'
+  )}</div>
   </div>`;
 }
 
@@ -424,10 +450,14 @@ function renderHearDone(vm: ViewModel): string {
   // keeps its original two-line stacked layout exactly.
   const resultHeader = vm.isTablet
     ? ''
-    : `<div style="font-family:var(--font-mono);font-size:13px;letter-spacing:4px;color:var(--text-dim);">測定結果</div>
+    : `<div style="font-family:var(--font-mono);font-size:13px;letter-spacing:4px;color:var(--text-dim);">${vm.t(
+        'nav.resultTitle'
+      )}</div>
     ${
       vm.hearIsPartial
-        ? `<div style="font-family:var(--font-mono);font-size:11px;color:var(--bad);letter-spacing:1px;">※途中で停止したため、一部の周波数は未測定です</div>`
+        ? `<div style="font-family:var(--font-mono);font-size:11px;color:var(--bad);letter-spacing:1px;">${vm.t(
+            'nav.partialWarning'
+          )}</div>`
         : ''
     }`;
 
@@ -463,7 +493,14 @@ function renderHearDone(vm: ViewModel): string {
   return `
   <div style="flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;align-items:center;gap:${
     vm.isTablet ? ts(vm, 14) : 18
-  }px;padding:${vm.isTablet ? '70px 0 10px' : '8px 0 16px'};">
+  }px;padding:${
+    // The 70px top padding was tuned specifically to satisfy "top area is
+    // fine as-is" for Japanese — every other locale's disclaimer runs onto
+    // more lines at the same width (verified: German wraps to 3 lines vs
+    // ja's tuned single line), which doesn't fit the same fixed 771px
+    // budget without reclaiming some of that top padding back.
+    vm.isTablet ? (vm.locale === 'ja' ? '70px 0 10px' : '36px 0 10px') : '8px 0 16px'
+  };">
     ${resultHeader}
     <div style="display:flex;align-items:center;gap:${ts(vm, 24)}px;font-family:var(--font-mono);font-size:${ts(
     vm,
@@ -471,32 +508,50 @@ function renderHearDone(vm: ViewModel): string {
   )}px;color:var(--text);">
       <div style="display:flex;align-items:center;gap:8px;">
         <span>Name</span>
-        <input type="text" placeholder="任意" data-bind="hearReportName" style="background:var(--panel);border:1px solid var(--line);color:var(--text);font-family:var(--font-mono);font-size:${ts(
+        <input type="text" placeholder="${vm.t('done.namePlaceholder')}" data-bind="hearReportName" style="background:var(--panel);border:1px solid var(--line);color:var(--text);font-family:var(--font-mono);font-size:${ts(
           vm,
           14
         )}px;padding:8px 10px;border-radius:2px;outline:none;width:${ts(vm, 160)}px;" />
       </div>
-      <div>測定日 ${vm.hearReportDate}</div>
+      <div>${vm.t('done.date')} ${vm.hearReportDate}</div>
       <button data-action="printHearingReport" class="eg-btn-pdf" style="background:transparent;${
         vm.isTablet ? 'border:1px solid var(--accent);color:var(--accent);' : ''
       }padding:${ts(vm, 10)}px ${ts(vm, 24)}px;border-radius:2px;font-weight:700;letter-spacing:2px;font-size:${ts(
     vm,
     12
-  )}px;cursor:pointer;transition:border-color 0.15s ease, color 0.15s ease;">PDFで保存</button>
+  )}px;cursor:pointer;transition:border-color 0.15s ease, color 0.15s ease;">${vm.t('done.pdfButton')}</button>
     </div>
     ${graphBlock}
     <div style="display:flex;justify-content:center;gap:${ts(vm, 24)}px;font-family:var(--font-mono);font-size:${ts(
     vm,
     11
   )}px;color:var(--text-dim);">
-      <div style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;border:2px solid var(--bad);display:inline-block;"></span>右耳</div>
-      <div style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border:2px solid var(--ear-l);display:inline-block;transform:rotate(45deg);"></span>左耳</div>
+      <div style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;border:2px solid var(--bad);display:inline-block;"></span>${vm.t(
+        'ear.right'
+      )}</div>
+      <div style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border:2px solid var(--ear-l);display:inline-block;transform:rotate(45deg);"></span>${vm.t(
+        'ear.left'
+      )}</div>
     </div>
     <div style="font-family:var(--font-mono);font-size:${
       vm.isTablet ? ts(vm, 9) : ts(vm, 11)
     }px;color:var(--text-dim);${
-    vm.isTablet ? 'white-space:nowrap;letter-spacing:-0.4px;' : 'max-width:700px;'
-  }text-align:center;line-height:1.8;">※相対値による簡易チェックです。絶対的な聴力レベル(dB HL)ではなく、使用機器での聞こえ方の左右差・帯域バランスの目安としてご覧ください。医療機関の検査結果とは一致しません。</div>
+    // The nowrap+tight-letter-spacing one-line treatment was measured to fit
+    // specifically against Japanese text at this width (see the overflow-x
+    // bugfix above) — every other locale's translation runs longer, so
+    // forcing nowrap there would silently reopen that exact bug. Only ja
+    // gets the tuned one-liner; every other locale wraps normally — and on
+    // tablet specifically, at a much wider max-width (close to the full
+    // ~1328px content width, vs PC's 700px) with tighter line-height, so a
+    // long translation (German verified: 4 lines at 700px) wraps to fewer
+    // lines and fits the tuned 771px vertical budget instead of overflowing
+    // it (confirmed via scrollHeight vs clientHeight in headless Chrome).
+    vm.isTablet
+      ? vm.locale === 'ja'
+        ? 'white-space:nowrap;letter-spacing:-0.4px;line-height:1.8;'
+        : 'max-width:1180px;line-height:1.5;'
+      : 'max-width:700px;line-height:1.8;'
+  }text-align:center;">${vm.t('done.disclaimer')}</div>
   </div>`;
 }
 
@@ -562,12 +617,14 @@ export function renderPrintReport(vm: ViewModel): string {
     .join('');
 
   return `
-  <div class="eg-print-report" style="background:#ffffff;color:#111111;font-family:-apple-system,'Hiragino Kaku Gothic ProN','Yu Gothic',Menlo,Consolas,monospace;padding:32px;">
-    <div style="font-size:20px;font-weight:700;letter-spacing:2px;margin-bottom:4px;">聴力チェック 測定結果</div>
-    <div style="font-size:11px;color:#666;letter-spacing:1px;margin-bottom:20px;">HEARING CHECK 簡易セルフチェック（相対値）</div>
+  <div class="eg-print-report" style="background:#ffffff;color:#111111;font-family:-apple-system,'Hiragino Kaku Gothic ProN','Yu Gothic','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',Menlo,Consolas,sans-serif;padding:32px;">
+    <div style="font-size:20px;font-weight:700;letter-spacing:2px;margin-bottom:4px;">${vm.t('print.title')}</div>
+    <div style="font-size:11px;color:#666;letter-spacing:1px;margin-bottom:20px;">HEARING CHECK ${vm.t(
+      'print.subtitle'
+    )}</div>
     <div style="display:flex;gap:32px;font-size:12px;margin-bottom:20px;">
       <div>Name: ${escapeHtml(vm.hearReportNameDisplay)}</div>
-      <div>測定日: ${vm.hearReportDate}</div>
+      <div>${vm.t('done.date')}: ${vm.hearReportDate}</div>
     </div>
     <div style="width:900px;">
       <div style="display:flex;">
@@ -587,10 +644,16 @@ export function renderPrintReport(vm: ViewModel): string {
       <div style="margin-left:40px;position:relative;height:14px;margin-top:6px;">${printAxisLabels}</div>
     </div>
     <div style="display:flex;gap:24px;font-size:11px;color:#333;margin-top:18px;">
-      <div style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;border:2px solid #c0392b;display:inline-block;"></span>右耳</div>
-      <div style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border:2px solid #2255aa;display:inline-block;transform:rotate(45deg);"></span>左耳</div>
+      <div style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;border:2px solid #c0392b;display:inline-block;"></span>${vm.t(
+        'ear.right'
+      )}</div>
+      <div style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border:2px solid #2255aa;display:inline-block;transform:rotate(45deg);"></span>${vm.t(
+        'ear.left'
+      )}</div>
     </div>
-    <div style="font-size:10px;color:#666;line-height:1.8;margin-top:16px;">※相対値による簡易チェックです。絶対的な聴力レベル(dB HL)ではなく、使用機器での聞こえ方の左右差・帯域バランスの目安です。医療機関の検査結果とは一致しません。</div>
+    <div style="font-size:10px;color:#666;line-height:1.8;margin-top:16px;max-width:900px;">${vm.t(
+      'print.disclaimer'
+    )}</div>
   </div>`;
 }
 

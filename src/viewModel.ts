@@ -6,6 +6,8 @@ import {
   HEARING_TEST_ORDER,
 } from './constants';
 import type { AppState, Ear, HearResults } from './types';
+import type { Locale } from './i18n';
+import { translate } from './i18n';
 
 export interface GraphPoint {
   freq: number;
@@ -47,6 +49,11 @@ export interface HearGraphData {
 export interface ViewModel {
   isGate: boolean;
   isTablet: boolean;
+  locale: Locale;
+  // Bound convenience wrapper around i18n's translate(), pre-applied to this
+  // render's locale — lets templates.ts/mobileTemplates.ts call vm.t(key)
+  // without importing i18n or threading vm.locale through separately.
+  t: (key: string, vars?: Record<string, string | number>) => string;
   isHearing: boolean;
   isHearIntro: boolean;
   isHearSetup: boolean;
@@ -56,7 +63,7 @@ export interface ViewModel {
   hearShowStop: boolean;
   hearDeviceOptions: DeviceOption[];
   hearListeningOptions: ListeningOption[];
-  hearEarLabel: string;
+  hearMeasureStatus: string;
   hearCurrentFreqLabel: string;
   hearProgressPct: number;
   hearPlayingClass: string;
@@ -137,6 +144,7 @@ function buildHearGraphData(
 }
 
 export function computeViewModel(s: AppState): ViewModel {
+  const t = (key: string, vars?: Record<string, string | number>) => translate(s.locale, key, vars);
   const hearRefLineY = hearGraphY(0);
   const hearDbTickValues: number[] = [];
   for (let db = HEARING_CEILING_DB; db >= HEARING_FLOOR_DB; db -= 10) hearDbTickValues.push(db);
@@ -147,9 +155,12 @@ export function computeViewModel(s: AppState): ViewModel {
   const listeningScale = s.hearListeningType === 'listening' ? 0.5 : 1;
   const hearGraph = buildHearGraphData(s.hearResults, listeningScale, HEAR_AXIS_MIN_FREQ, HEAR_AXIS_MAX_FREQ);
 
-  const hearEarLabel = s.hearEar === 'right' ? '右' : '左';
   const hearCurrentFreq = HEARING_TEST_ORDER[s.hearFreqPos] || 0;
   const hearCurrentFreqLabel = hearCurrentFreq >= 1000 ? hearCurrentFreq / 1000 + 'kHz' : hearCurrentFreq + 'Hz';
+  const hearMeasureStatus = t('measure.status', {
+    ear: t(s.hearEar === 'right' ? 'ear.right' : 'ear.left'),
+    freq: hearCurrentFreqLabel,
+  });
   const hearEarIndex = s.hearEar === 'right' ? 0 : 1;
   const hearProgressPct = ((hearEarIndex * HEARING_TEST_ORDER.length + s.hearFreqPos) / (HEARING_TEST_ORDER.length * 2)) * 100;
 
@@ -159,22 +170,24 @@ export function computeViewModel(s: AppState): ViewModel {
   const now = new Date();
   const hearReportDate =
     now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
-  const hearReportNameDisplay = s.hearReportName.trim() ? s.hearReportName.trim() : '（未記入）';
+  const hearReportNameDisplay = s.hearReportName.trim() ? s.hearReportName.trim() : t('done.nameEmpty');
 
   const hearDeviceOptions: DeviceOption[] = ['headphone', 'earphone'].map((id) => ({
     id,
-    label: id === 'headphone' ? 'ヘッドホン' : 'イヤホン',
+    label: id === 'headphone' ? t('setup.deviceHeadphone') : t('setup.deviceEarphone'),
     active: s.hearDeviceType === id,
   }));
   const hearListeningOptions: ListeningOption[] = ['reference', 'listening'].map((id) => ({
     id,
-    label: id === 'reference' ? 'リファレンスクオリティ\n（フラットな特性）' : 'リスニングタイプ\n（低音、高音が豊かな特性）',
+    label: id === 'reference' ? t('setup.listeningReference') : t('setup.listeningType'),
     active: s.hearListeningType === id,
   }));
 
   return {
     isGate: s.screen === 'gate',
     isTablet: s.isTablet,
+    locale: s.locale,
+    t,
     isHearing: s.screen === 'hearing',
     isHearIntro: s.screen === 'hearing' && s.hearStep === 'intro',
     isHearSetup: s.screen === 'hearing' && s.hearStep === 'setup',
@@ -184,7 +197,7 @@ export function computeViewModel(s: AppState): ViewModel {
     hearShowStop: s.screen === 'hearing' && s.hearStep === 'calibrate',
     hearDeviceOptions,
     hearListeningOptions,
-    hearEarLabel,
+    hearMeasureStatus,
     hearCurrentFreqLabel,
     hearProgressPct,
     hearPlayingClass: s.hearPlaying ? 'is-playing' : '',

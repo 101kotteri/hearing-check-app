@@ -42,6 +42,7 @@ import { renderPrintReport, renderScreenContent } from './templates';
 import type { AppState, DeviceType, ListeningType } from './types';
 import { createInitialHearingState, createInitialState } from './types';
 import { computeViewModel } from './viewModel';
+import type { Locale } from './i18n';
 
 type HearDirection = 'descend' | 'ascend';
 
@@ -105,7 +106,7 @@ export class App {
   private openingTimer1: number | undefined;
   private openingTimer2: number | undefined;
 
-  constructor(root: HTMLElement, isMobile: boolean, isTablet: boolean = false) {
+  constructor(root: HTMLElement, isMobile: boolean, isTablet: boolean = false, locale: Locale = 'en') {
     this.isMobile = isMobile;
     // Tablet deliberately does NOT set isMobile — it stays on the PC-based
     // chassis/fit/mount path (always framed, no back-btn-overlay) and reuses
@@ -116,7 +117,7 @@ export class App {
     // opening screen/animation with no password gate — see wantsFramedChassis,
     // mountRoot, and goToGate for where isTablet is checked alongside isMobile.
     this.isTablet = isTablet;
-    this.state = createInitialState(isMobile, isTablet);
+    this.state = createInitialState(isMobile, isTablet, locale);
     this.rootEl = root;
 
     // A body-level sibling of the chassis, not a descendant of it — the print
@@ -284,7 +285,7 @@ export class App {
 
     if (this.wantsOverflowTopFit()) {
       const backAction = this.state.hearStep === 'calibrate' ? 'goBackToHearSetup' : 'goToGate';
-      const backLabel = this.state.hearStep === 'calibrate' ? '戻る' : 'EXIT';
+      const backLabel = this.state.hearStep === 'calibrate' ? vm.t('nav.back') : 'EXIT';
       this.backBtnOverlay.innerHTML = renderMobileBackButtonOverlay(backAction, backLabel);
     } else {
       this.backBtnOverlay.innerHTML = '';
@@ -296,7 +297,7 @@ export class App {
       // around it differs (renderTabletFrame vs. renderMobileOpeningFrame).
       this.screenRoot.innerHTML = renderMobileOpening();
     } else if (this.isMobile && this.state.screen === 'hearing' && this.state.hearStep === 'intro') {
-      this.screenRoot.innerHTML = renderMobileIntro();
+      this.screenRoot.innerHTML = renderMobileIntro(vm);
     } else if (this.isMobile && this.state.screen === 'hearing' && this.state.hearStep === 'setup') {
       this.screenRoot.innerHTML = renderMobileSetup(vm);
     } else if (this.isMobile && this.state.screen === 'hearing' && this.state.hearStep === 'calibrate') {

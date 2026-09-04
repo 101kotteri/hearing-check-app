@@ -1,5 +1,6 @@
 import './style.css';
 import { App } from './app';
+import { detectLocale } from './i18n';
 
 const root = document.querySelector<HTMLDivElement>('#app');
 if (!root) throw new Error('#app root element not found');
@@ -30,4 +31,8 @@ const isPhoneUA = /iPhone|iPod|Android/i.test(navigator.userAgent);
 const isTablet = forceTablet || (isIPadUA && !forceMobile);
 const isMobile = forceMobile || (isPhoneUA && !isTablet);
 
-new App(root, isMobile, isTablet);
+// `?lang=xx` override (see i18n.ts) matches the existing ?mobile/?ipad
+// pattern; otherwise resolved from the browser's language preferences.
+const locale = detectLocale();
+
+new App(root, isMobile, isTablet, locale);

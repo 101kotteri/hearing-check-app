@@ -1,3 +1,5 @@
+import type { Locale } from './i18n';
+
 export type Ear = 'right' | 'left';
 export type DeviceType = 'headphone' | 'earphone';
 export type ListeningType = 'reference' | 'listening';
@@ -36,6 +38,10 @@ export interface AppState {
   // state purely so templates.ts's PC render functions (which only ever
   // receive AppState/ViewModel, never a device flag directly) can see it.
   isTablet: boolean;
+  // Resolved once at boot (see main.ts's detectLocale()) and carried in state
+  // for the same reason isTablet is — templates.ts/mobileTemplates.ts only
+  // ever receive AppState/ViewModel, never a device/locale flag directly.
+  locale: Locale;
 }
 
 export function createInitialHearingState(): Pick<
@@ -63,13 +69,14 @@ export function createInitialHearingState(): Pick<
   };
 }
 
-export function createInitialState(isMobile: boolean, isTablet: boolean = false): AppState {
+export function createInitialState(isMobile: boolean, isTablet: boolean = false, locale: Locale = 'en'): AppState {
   return {
     // No login gate on tablet either — see app.ts's goToGate.
     screen: isMobile || isTablet ? 'opening' : 'gate',
     password: '',
     passwordError: false,
     isTablet,
+    locale,
     ...createInitialHearingState(),
   };
 }
