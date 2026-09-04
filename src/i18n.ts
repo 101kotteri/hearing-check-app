@@ -96,11 +96,11 @@ const DICTIONARY: Record<Locale, Record<string, string>> = {
     'done.nameEmpty': '（未記入）',
     'done.pdfButton': 'PDFで保存',
     'done.disclaimer':
-      '※相対値による簡易チェックです。絶対的な聴力レベル(dB HL)ではなく、使用機器での聞こえ方の左右差・帯域バランスの目安としてご覧ください。医療機関の検査結果とは一致しません。',
+      '※相対値による簡易チェックです。使用機器での聞こえ方の左右差・帯域バランスの目安としてご覧ください。医療機関の聴力検査とは異なる簡易的な指標です。',
     'print.title': '聴力チェック 測定結果',
     'print.subtitle': '簡易セルフチェック（相対値）',
     'print.disclaimer':
-      '※相対値による簡易チェックです。絶対的な聴力レベル(dB HL)ではなく、使用機器での聞こえ方の左右差・帯域バランスの目安です。医療機関の検査結果とは一致しません。',
+      '※相対値による簡易チェックです。使用機器での聞こえ方の左右差・帯域バランスの目安としてご覧ください。医療機関の聴力検査とは異なる簡易的な指標です。',
   },
   en: {
     'gate.passwordError': 'Incorrect password',
@@ -142,11 +142,11 @@ const DICTIONARY: Record<Locale, Record<string, string>> = {
     'done.nameEmpty': '(not entered)',
     'done.pdfButton': 'Save as PDF',
     'done.disclaimer':
-      "※This is a simplified check based on relative values. Treat it as a guide to left/right balance and frequency response on your device — not an absolute hearing level (dB HL) — not equivalent to a clinical test result.",
+      "※This is a simplified check based on relative values. Treat it as a guide to left/right balance and frequency response on your device. It's a simplified indicator, different from a clinical hearing test.",
     'print.title': 'Hearing Check Results',
     'print.subtitle': 'Simplified self-check (relative values)',
     'print.disclaimer':
-      '※This is a simplified check based on relative values — a guide to left/right balance and frequency response on your device, not an absolute hearing level (dB HL). Not equivalent to a clinical test result.',
+      "※This is a simplified check based on relative values. Treat it as a guide to left/right balance and frequency response on your device. It's a simplified indicator, different from a clinical hearing test.",
   },
   zh: {
     'gate.passwordError': '密码错误',
@@ -187,11 +187,11 @@ const DICTIONARY: Record<Locale, Record<string, string>> = {
     'done.nameEmpty': '（未填写）',
     'done.pdfButton': '保存为PDF',
     'done.disclaimer':
-      '※这是基于相对值的简易检查。请将其作为在所用设备上左右差异、频段平衡的参考，而非绝对听力水平（dB HL），与医疗机构的检查结果并不一致',
+      '※这是基于相对值的简易检查。请将其作为在所用设备上左右差异、频段平衡的参考。这是一项简易指标，与医疗机构的听力检查不同',
     'print.title': '听力检查 测定结果',
     'print.subtitle': '简易自我检查（相对值）',
     'print.disclaimer':
-      '※这是基于相对值的简易检查，是在所用设备上左右差异、频段平衡的参考，而非绝对听力水平（dB HL）。与医疗机构的检查结果并不一致',
+      '※这是基于相对值的简易检查。请将其作为在所用设备上左右差异、频段平衡的参考。这是一项简易指标，与医疗机构的听力检查不同',
   },
   de: {
     'gate.passwordError': 'Falsches Passwort',
@@ -233,11 +233,11 @@ const DICTIONARY: Record<Locale, Record<string, string>> = {
     'done.nameEmpty': '(nicht angegeben)',
     'done.pdfButton': 'Als PDF speichern',
     'done.disclaimer':
-      'Dies ist ein vereinfachter Test auf Basis relativer Werte. Betrachten Sie ihn als Anhaltspunkt für die Links-Rechts-Balance und den Frequenzgang auf Ihrem Gerät — nicht als absoluten Hörpegel (dB HL) — und nicht als Ersatz für ein klinisches Testergebnis.',
+      'Dies ist ein vereinfachter Test auf Basis relativer Werte. Betrachten Sie ihn als Anhaltspunkt für die Links-Rechts-Balance und den Frequenzgang auf Ihrem Gerät. Es handelt sich um einen vereinfachten Indikator, der sich von einem klinischen Hörtest unterscheidet.',
     'print.title': 'Hörtest-Ergebnis',
     'print.subtitle': 'Vereinfachter Selbsttest (relative Werte)',
     'print.disclaimer':
-      'Dies ist ein vereinfachter Test auf Basis relativer Werte — ein Anhaltspunkt für die Links-Rechts-Balance und den Frequenzgang auf Ihrem Gerät, kein absoluter Hörpegel (dB HL). Kein Ersatz für ein klinisches Testergebnis.',
+      'Dies ist ein vereinfachter Test auf Basis relativer Werte. Betrachten Sie ihn als Anhaltspunkt für die Links-Rechts-Balance und den Frequenzgang auf Ihrem Gerät. Es handelt sich um einen vereinfachten Indikator, der sich von einem klinischen Hörtest unterscheidet.',
   },
   ko: {
     'gate.passwordError': '비밀번호가 틀렸습니다',
@@ -278,11 +278,11 @@ const DICTIONARY: Record<Locale, Record<string, string>> = {
     'done.nameEmpty': '(미기입)',
     'done.pdfButton': 'PDF로 저장',
     'done.disclaimer':
-      '※상대값에 의한 간이 체크입니다. 절대적인 청력 레벨(dB HL)이 아니라 사용 기기에서의 좌우 차이·대역 밸런스의 기준으로 참고해 주세요. 의료 기관의 검사 결과와는 일치하지 않습니다',
+      '※상대값에 의한 간이 체크입니다. 사용 기기에서의 좌우 차이·대역 밸런스의 기준으로 참고해 주세요. 의료 기관의 청력 검사와는 다른 간이 지표입니다',
     'print.title': '청력 체크 측정 결과',
     'print.subtitle': '간이 셀프 체크（상대값）',
     'print.disclaimer':
-      '※상대값에 의한 간이 체크입니다. 절대적인 청력 레벨(dB HL)이 아닌 사용 기기에서의 좌우 차이·대역 밸런스의 기준입니다. 의료 기관의 검사 결과와는 일치하지 않습니다',
+      '※상대값에 의한 간이 체크입니다. 사용 기기에서의 좌우 차이·대역 밸런스의 기준으로 참고해 주세요. 의료 기관의 청력 검사와는 다른 간이 지표입니다',
   },
   es: {
     'gate.passwordError': 'Contraseña incorrecta',
@@ -324,11 +324,11 @@ const DICTIONARY: Record<Locale, Record<string, string>> = {
     'done.nameEmpty': '(sin indicar)',
     'done.pdfButton': 'Guardar como PDF',
     'done.disclaimer':
-      'Esta es una comprobación simplificada basada en valores relativos. Considérela una guía del equilibrio izquierda/derecha y la respuesta en frecuencia de su dispositivo, no un nivel auditivo absoluto (dB HL), y no equivale a un resultado de prueba clínica.',
+      'Esta es una comprobación simplificada basada en valores relativos. Considérela una guía del equilibrio izquierda/derecha y la respuesta en frecuencia de su dispositivo. Es un indicador simplificado, distinto de una prueba auditiva clínica.',
     'print.title': 'Resultado del control auditivo',
     'print.subtitle': 'Autocomprobación simplificada (valores relativos)',
     'print.disclaimer':
-      'Esta es una comprobación simplificada basada en valores relativos: una guía del equilibrio izquierda/derecha y la respuesta en frecuencia de su dispositivo, no un nivel auditivo absoluto (dB HL). No equivale a un resultado de prueba clínica.',
+      'Esta es una comprobación simplificada basada en valores relativos. Considérela una guía del equilibrio izquierda/derecha y la respuesta en frecuencia de su dispositivo. Es un indicador simplificado, distinto de una prueba auditiva clínica.',
   },
 };
 
