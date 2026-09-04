@@ -6,10 +6,17 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "build:capacitor": "tsc && vite build --mode capacitor",
+    "preview": "vite preview",
+    "cap:sync": "npm run build:capacitor && npx cap sync"
   },
   "devDependencies": {
     "typescript": "~6.0.2",
     "vite": "^8.2.2"
+  },
+  "dependencies": {
+    "@capacitor/cli": "^8.5.1",
+    "@capacitor/core": "^8.5.1",
+    "@capacitor/ios": "^8.5.1"
   }
 }
