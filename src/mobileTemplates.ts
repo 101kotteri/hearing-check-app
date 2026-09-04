@@ -233,7 +233,7 @@ export function renderMobileDone(vm: ViewModel): string {
       <div style="text-align:center;font-size:26px;font-weight:700;letter-spacing:1px;">${vm.t('nav.resultTitle')}</div>
       ${
         vm.hearIsPartial
-          ? `<div style="font-family:var(--font-mono);font-size:18px;color:var(--bad);letter-spacing:1px;text-align:right;max-width:360px;">${vm.t(
+          ? `<div style="font-family:var(--font-mono);font-size:18px;color:var(--bad);letter-spacing:1px;text-align:right;max-width:480px;">${vm.t(
               'nav.partialWarning'
             )}</div>`
           : '<div></div>'
