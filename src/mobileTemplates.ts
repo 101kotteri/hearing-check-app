@@ -106,7 +106,7 @@ export function renderMobileIntro(vm: ViewModel): string {
         ${vm.t('intro.bullet5')}<br/>
         ${vm.t('intro.bullet6', { stopBtn: vm.t('nav.stop') })}
       </div>
-      <div style="font-family:var(--font-mono);font-size:19px;color:var(--text-dim);line-height:1.6;">${vm.t(
+      <div style="font-family:var(--font-mono);font-size:19px;color:var(--text-dim);line-height:1.6;text-wrap:balance;">${vm.t(
         'intro.disclaimer'
       )}</div>
       <button data-action="goToHearSetup" class="eg-btn eg-btn-glow" style="background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:22px;padding:16px 64px;cursor:pointer;border-radius:4px;">${vm.t(
@@ -280,7 +280,7 @@ export function renderMobileDone(vm: ViewModel): string {
       // the tuned nowrap one-liner only actually fits Japanese-length text at
       // this size — every other locale wraps normally rather than silently
       // overflowing past the frame-less canvas's clipped edge.
-      vm.locale === 'ja' ? 'white-space:nowrap;' : 'max-width:1250px;margin:0 auto;'
+      vm.locale === 'ja' ? 'white-space:nowrap;' : 'max-width:1250px;margin:0 auto;text-wrap:balance;'
     }">${vm.t('done.disclaimer')}</div>
   </div>`;
 }

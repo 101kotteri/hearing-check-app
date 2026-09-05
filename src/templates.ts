@@ -272,7 +272,7 @@ function renderHearIntro(vm: ViewModel): string {
     <div style="font-family:var(--font-mono);font-size:${ts(
       vm,
       13
-    )}px;color:var(--text-dim);line-height:1.8;">${vm.t('intro.disclaimer')}</div>
+    )}px;color:var(--text-dim);line-height:1.8;text-wrap:balance;">${vm.t('intro.disclaimer')}</div>
     <button data-action="goToHearSetup" class="eg-btn${
       vm.isTablet ? ' eg-btn-glow' : ''
     }" style="background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:${ts(
@@ -660,8 +660,8 @@ function renderHearDone(vm: ViewModel): string {
     vm.isTablet
       ? vm.locale === 'ja'
         ? 'white-space:nowrap;letter-spacing:-0.4px;line-height:1.8;'
-        : 'max-width:1180px;line-height:1.5;'
-      : 'max-width:700px;line-height:1.8;'
+        : 'max-width:1180px;line-height:1.5;text-wrap:balance;'
+      : 'max-width:700px;line-height:1.8;text-wrap:balance;'
   }text-align:center;">${vm.t('done.disclaimer')}</div>
   </div>`;
 }
