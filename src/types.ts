@@ -42,11 +42,20 @@ export interface AppState {
   // for the same reason isTablet is — templates.ts/mobileTemplates.ts only
   // ever receive AppState/ViewModel, never a device/locale flag directly.
   locale: Locale;
+  // Capacitor.isNativePlatform(), threaded through state the same way —
+  // lets templates.ts/mobileTemplates.ts branch the results-screen save
+  // button (native: "Save Results" dropdown with PDF/image choices, each
+  // shared as its own file; web: unchanged single "Save as PDF" ->
+  // window.print()) without importing @capacitor/core themselves.
+  isNative: boolean;
   // Transient UI state for the in-app language-switcher dropdown (see
   // templates.ts's renderLocaleSwitcher) — not part of the hearing flow, so
   // not reset by createInitialHearingState the way hearStep/hearResults etc.
   // are on EXIT/retry.
   localeMenuOpen: boolean;
+  // Transient UI state for the native-only save dropdown (see
+  // renderSaveMenu) — same lifecycle rules as localeMenuOpen above.
+  saveMenuOpen: boolean;
 }
 
 export function createInitialHearingState(): Pick<
@@ -74,7 +83,12 @@ export function createInitialHearingState(): Pick<
   };
 }
 
-export function createInitialState(isMobile: boolean, isTablet: boolean = false, locale: Locale = 'en'): AppState {
+export function createInitialState(
+  isMobile: boolean,
+  isTablet: boolean = false,
+  locale: Locale = 'en',
+  isNative: boolean = false
+): AppState {
   return {
     // No login gate on tablet either — see app.ts's goToGate.
     screen: isMobile || isTablet ? 'opening' : 'gate',
@@ -82,7 +96,9 @@ export function createInitialState(isMobile: boolean, isTablet: boolean = false,
     passwordError: false,
     isTablet,
     locale,
+    isNative,
     localeMenuOpen: false,
+    saveMenuOpen: false,
     ...createInitialHearingState(),
   };
 }

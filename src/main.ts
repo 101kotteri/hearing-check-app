@@ -1,4 +1,5 @@
 import './style.css';
+import { Capacitor } from '@capacitor/core';
 import { App } from './app';
 import { detectLocale } from './i18n';
 
@@ -44,4 +45,4 @@ const isMobile = forceMobile || (isPhoneUA && !isTablet);
 // pattern; otherwise resolved from the browser's language preferences.
 const locale = detectLocale();
 
-new App(root, isMobile, isTablet, locale);
+new App(root, isMobile, isTablet, locale, Capacitor.isNativePlatform());

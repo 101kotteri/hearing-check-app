@@ -43,6 +43,27 @@ import type { AppState, DeviceType, ListeningType } from './types';
 import { createInitialHearingState, createInitialState } from './types';
 import { computeViewModel } from './viewModel';
 import type { Locale } from './i18n';
+import { Directory, Filesystem } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
+import { registerPlugin } from '@capacitor/core';
+
+// Local plugin (no npm package — registered directly in the Xcode project,
+// see ios/App/App/SavePhotoPlugin.swift + project.pbxproj) that writes an
+// image straight to the Photos library via PHPhotoLibrary. Used instead of
+// routing the image save through Share.share: sharing an image put "Add to
+// Shared Album" (an iCloud Shared Albums action needing a signed-in Apple
+// ID) ahead of/alongside plain "Save Image" in the share sheet, which was
+// confusing and didn't work at all on a not-signed-in simulator — this
+// saves directly, no share sheet, no account needed.
+interface SavePhotoPlugin {
+  saveImage(options: { data: string }): Promise<void>;
+}
+const SavePhoto = registerPlugin<SavePhotoPlugin>('SavePhoto');
+// Dynamically imported inside shareHearingReportNative() instead of here —
+// jsPDF (plus its own bundled dependencies) adds real weight (400KB+) that
+// only the native app's save flow ever needs. A static import here would
+// ship all of that to every plain WebApp visitor too, who never takes this
+// code path (they still use window.print(), unchanged).
 
 type HearDirection = 'descend' | 'ascend';
 
@@ -106,7 +127,13 @@ export class App {
   private openingTimer1: number | undefined;
   private openingTimer2: number | undefined;
 
-  constructor(root: HTMLElement, isMobile: boolean, isTablet: boolean = false, locale: Locale = 'en') {
+  constructor(
+    root: HTMLElement,
+    isMobile: boolean,
+    isTablet: boolean = false,
+    locale: Locale = 'en',
+    isNative: boolean = false
+  ) {
     this.isMobile = isMobile;
     // Tablet deliberately does NOT set isMobile — it stays on the PC-based
     // chassis/fit/mount path (always framed, no back-btn-overlay) and reuses
@@ -117,7 +144,7 @@ export class App {
     // opening screen/animation with no password gate — see wantsFramedChassis,
     // mountRoot, and goToGate for where isTablet is checked alongside isMobile.
     this.isTablet = isTablet;
-    this.state = createInitialState(isMobile, isTablet, locale);
+    this.state = createInitialState(isMobile, isTablet, locale, isNative);
     this.rootEl = root;
 
     // A body-level sibling of the chassis, not a descendant of it — the print
@@ -332,7 +359,12 @@ export class App {
     // button's press nor the orange buttons' glow burst was ever visible.
     // A manual class (CSS :active alone ends the instant the pointer lifts,
     // before click even fires) plus a short held-back dispatch fixes both.
-    if (target.classList.contains('eg-back-btn') || target.classList.contains('eg-lang-btn')) {
+    if (
+      target.classList.contains('eg-back-btn') ||
+      target.classList.contains('eg-lang-btn') ||
+      target.classList.contains('eg-menu-item') ||
+      target.classList.contains('eg-save-toggle')
+    ) {
       target.classList.add('is-pressed');
       window.setTimeout(() => this.dispatchAction(action, value), 140);
       return;
@@ -396,6 +428,12 @@ export class App {
         break;
       case 'setLocale':
         this.setState({ locale: value as Locale, localeMenuOpen: false });
+        break;
+      case 'toggleSaveMenu':
+        this.setState({ saveMenuOpen: !this.state.saveMenuOpen });
+        break;
+      case 'saveReport':
+        this.saveReportAs(value as 'pdf' | 'image');
         break;
     }
   }
@@ -844,11 +882,46 @@ export class App {
     }
   }
 
+  // Web-only path (the results screen's save button on native instead opens
+  // the saveMenuOpen dropdown — see toggleSaveMenu/saveReportAs below — since
+  // a bare WKWebView doesn't get a print dialog for free the way a full
+  // browser does). Untouched: works today, PC/mobile/tablet all verified.
   private printHearingReport(): void {
     // hearReportName updates skip a re-render (see handleInput) to keep the input's
     // caret position while typing, so the hidden .eg-print-report copy can be stale.
     // Focus is on this button, not the name field, so re-rendering here is safe.
     this.render();
     window.print();
+  }
+
+  // Native results-screen save button: per explicit direction, "save as
+  // file" and "save as image" must land in exactly one destination each
+  // (Files / Photos) — sharing both files in one Share.share() call (the
+  // earlier approach) can't do that, since the OS share sheet's "save to
+  // Files" action bundles every shared item together regardless of type.
+  // Generating and sharing only the one requested file keeps each destination
+  // clean.
+  private saveReportAs(mode: 'pdf' | 'image'): void {
+    this.setState({ saveMenuOpen: false });
+    this.shareHearingReportNative(mode).catch((err) => {
+      console.error('shareHearingReportNative failed', err);
+    });
+  }
+
+  private async shareHearingReportNative(mode: 'pdf' | 'image'): Promise<void> {
+    const { generateReportPdfDataUri, generateReportPngDataUrl, reportFilenames } = await import('./reportExport');
+    const vm = computeViewModel(this.state);
+    if (mode === 'pdf') {
+      // PDF still goes through the OS share sheet — "save to Files" has no
+      // simpler direct-write equivalent (a document picker IS a system
+      // sheet), so this remains the right tool for that destination.
+      const { pdf } = reportFilenames(vm);
+      const pdfBase64 = generateReportPdfDataUri(vm).split(',')[1];
+      const pdfResult = await Filesystem.writeFile({ path: pdf, data: pdfBase64, directory: Directory.Cache });
+      await Share.share({ files: [pdfResult.uri] });
+    } else {
+      const pngBase64 = generateReportPngDataUrl(vm).split(',')[1];
+      await SavePhoto.saveImage({ data: pngBase64 });
+    }
   }
 }

@@ -181,6 +181,38 @@ button {
   box-shadow: 0 0 0 oklch(0.1 0.006 260), 0 1px 3px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08),
     inset 0 2px 6px rgba(0, 0, 0, 0.35);
 }
+.eg-save-toggle {
+  /* Same flat/bordered treatment as the web-only .eg-btn-pdf on mobile/
+     tablet (transparent fill, orange border + text, always-on since touch
+     has no :hover) — per explicit correction, "orange" meant border+text
+     like that button, not a solid filled chip. */
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  border-radius: 2px;
+  transition: background 0.08s ease;
+}
+.eg-save-toggle.is-pressed {
+  /* No native :active/:hover — same reasoning as .eg-back-btn/.eg-lang-btn
+     above, only this app's own JS-timed animation. */
+  background: oklch(0.62 0.14 250 / 0.5);
+}
+.eg-menu-item {
+  cursor: pointer;
+  transition: background 0.08s ease, color 0.08s ease;
+}
+.eg-menu-item.is-pressed {
+  /* Same JS-timed-only feedback as .eg-back-btn/.eg-lang-btn above (no
+     :active/:hover) — a flat background flash rather than a translateY
+     sink, since these are dropdown list rows, not raised buttons. */
+  background: oklch(0.62 0.14 250 / 0.5);
+  color: var(--text);
+}
 .eg-play:hover {
   border-color: var(--good);
 }

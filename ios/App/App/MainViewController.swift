@@ -20,4 +20,12 @@ class MainViewController: CAPBridgeViewController {
         webView?.scrollView.bounces = false
         webView?.scrollView.isScrollEnabled = false
     }
+
+    // SavePhotoPlugin is a local plugin (no npm package, just this Xcode
+    // project — see project.pbxproj), not something `npx cap sync` knows to
+    // wire up automatically. Explicit registration here removes any
+    // dependence on CAPBridgedPlugin's own auto-discovery actually firing.
+    override func capacitorDidLoad() {
+        bridge?.registerPluginInstance(SavePhotoPlugin())
+    }
 }

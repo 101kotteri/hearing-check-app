@@ -50,7 +50,9 @@ export interface ViewModel {
   isGate: boolean;
   isTablet: boolean;
   locale: Locale;
+  isNative: boolean;
   localeMenuOpen: boolean;
+  saveMenuOpen: boolean;
   // Bound convenience wrapper around i18n's translate(), pre-applied to this
   // render's locale — lets templates.ts/mobileTemplates.ts call vm.t(key)
   // without importing i18n or threading vm.locale through separately.
@@ -188,7 +190,9 @@ export function computeViewModel(s: AppState): ViewModel {
     isGate: s.screen === 'gate',
     isTablet: s.isTablet,
     locale: s.locale,
+    isNative: s.isNative,
     localeMenuOpen: s.localeMenuOpen,
+    saveMenuOpen: s.saveMenuOpen,
     t,
     isHearing: s.screen === 'hearing',
     isHearIntro: s.screen === 'hearing' && s.hearStep === 'intro',

@@ -109,6 +109,8 @@ const DICTIONARY: Record<Locale, Record<string, string>> = {
     'done.namePlaceholder': '任意',
     'done.nameEmpty': '（未記入）',
     'done.pdfButton': 'PDFで保存',
+    'done.saveButton': '結果を保存',
+    'done.saveAsImage': '画像で保存',
     'done.disclaimer':
       '※相対値による簡易チェックです。使用機器での聞こえ方の左右差・帯域バランスの目安としてご覧ください。医療機関の聴力検査とは異なる簡易的な指標です。',
     'print.title': '聴力チェック 測定結果',
@@ -155,6 +157,8 @@ const DICTIONARY: Record<Locale, Record<string, string>> = {
     'done.namePlaceholder': 'optional',
     'done.nameEmpty': '(not entered)',
     'done.pdfButton': 'Save as PDF',
+    'done.saveButton': 'Save Results',
+    'done.saveAsImage': 'Save as Image',
     'done.disclaimer':
       "※This is a simplified check based on relative values. Treat it as a guide to left/right balance and frequency response on your device. It's a simplified indicator, different from a clinical hearing test.",
     'print.title': 'Hearing Check Results',
@@ -200,6 +204,8 @@ const DICTIONARY: Record<Locale, Record<string, string>> = {
     'done.namePlaceholder': '选填',
     'done.nameEmpty': '（未填写）',
     'done.pdfButton': '保存为PDF',
+    'done.saveButton': '保存结果',
+    'done.saveAsImage': '保存为图片',
     'done.disclaimer':
       '※这是基于相对值的简易检查。请将其作为在所用设备上左右差异、频段平衡的参考。这是一项简易指标，与医疗机构的听力检查不同',
     'print.title': '听力检查 测定结果',
@@ -246,6 +252,8 @@ const DICTIONARY: Record<Locale, Record<string, string>> = {
     'done.namePlaceholder': 'optional',
     'done.nameEmpty': '(nicht angegeben)',
     'done.pdfButton': 'Als PDF speichern',
+    'done.saveButton': 'Ergebnis speichern',
+    'done.saveAsImage': 'Als Bild speichern',
     'done.disclaimer':
       'Dies ist ein vereinfachter Test auf Basis relativer Werte. Betrachten Sie ihn als Anhaltspunkt für die Links-Rechts-Balance und den Frequenzgang auf Ihrem Gerät. Es handelt sich um einen vereinfachten Indikator, der sich von einem klinischen Hörtest unterscheidet.',
     'print.title': 'Hörtest-Ergebnis',
@@ -291,6 +299,8 @@ const DICTIONARY: Record<Locale, Record<string, string>> = {
     'done.namePlaceholder': '선택',
     'done.nameEmpty': '(미기입)',
     'done.pdfButton': 'PDF로 저장',
+    'done.saveButton': '결과 저장',
+    'done.saveAsImage': '이미지로 저장',
     'done.disclaimer':
       '※상대값에 의한 간이 체크입니다. 사용 기기에서의 좌우 차이·대역 밸런스의 기준으로 참고해 주세요. 의료 기관의 청력 검사와는 다른 간이 지표입니다',
     'print.title': '청력 체크 측정 결과',
@@ -337,6 +347,8 @@ const DICTIONARY: Record<Locale, Record<string, string>> = {
     'done.namePlaceholder': 'opcional',
     'done.nameEmpty': '(sin indicar)',
     'done.pdfButton': 'Guardar como PDF',
+    'done.saveButton': 'Guardar resultado',
+    'done.saveAsImage': 'Guardar como imagen',
     'done.disclaimer':
       'Esta es una comprobación simplificada basada en valores relativos. Considérela una guía del equilibrio izquierda/derecha y la respuesta en frecuencia de su dispositivo. Es un indicador simplificado, distinto de una prueba auditiva clínica.',
     'print.title': 'Resultado del control auditivo',

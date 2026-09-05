@@ -88,6 +88,45 @@ export function renderLocaleSwitcher(vm: ViewModel): string {
   </div>`;
 }
 
+// Results-screen save control. Web keeps its original single "Save as PDF"
+// button (data-action="printHearingReport" -> window.print(), unchanged
+// label/size/behavior — untouched per explicit direction). Native (iOS)
+// instead shows a "Save Results" dropdown with separate PDF/image choices:
+// sharing both files in one Share.share() call would let the OS share
+// sheet's "save to Files" action bundle both formats together, so each
+// choice here generates and shares only the one file, keeping Files (PDF)
+// and Photos (image) clean single-destination saves. Same open/close-only-
+// via-toggle behavior as renderLocaleSwitcher above (no click-outside
+// dismissal), and reuses that same .eg-lang-btn raised/press-feedback look
+// rather than the old bordered eg-btn-pdf box, since it's the same kind of
+// "tap to reveal a small menu" control. `fontSize` is pre-resolved by the
+// caller (ts(vm, 12) on PC/tablet, a fixed literal on mobile) since ts()
+// itself is private to this file and mobileTemplates.ts doesn't use it.
+export function renderSaveMenu(vm: ViewModel, fontSize: number): string {
+  const itemStyle = `padding:${Math.round(fontSize * 0.7)}px ${Math.round(
+    fontSize * 1.1
+  )}px;font-family:var(--font-mono);font-size:${fontSize}px;cursor:pointer;white-space:nowrap;color:var(--text-dim);`;
+  const menu = vm.saveMenuOpen
+    ? `<div style="position:absolute;top:100%;right:0;margin-top:6px;background:var(--panel);border:1px solid var(--line);border-radius:2px;overflow:hidden;min-width:${Math.round(
+        fontSize * 9
+      )}px;z-index:1;">
+        <div data-action="saveReport" data-value="pdf" class="eg-menu-item" style="${itemStyle}">${vm.t(
+        'done.pdfButton'
+      )}</div>
+        <div data-action="saveReport" data-value="image" class="eg-menu-item" style="${itemStyle}">${vm.t(
+        'done.saveAsImage'
+      )}</div>
+      </div>`
+    : '';
+  return `
+  <div style="position:relative;display:inline-block;">
+    <div data-action="toggleSaveMenu" class="eg-save-toggle" style="gap:6px;font-size:${fontSize}px;letter-spacing:1px;padding:${Math.round(
+    fontSize * 0.5
+  )}px ${Math.round(fontSize * 0.8)}px;">${vm.t('done.saveButton')} ▾</div>
+    ${menu}
+  </div>`;
+}
+
 function renderGate(s: AppState): string {
   return `
   <div style="position:relative;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:36px;">
@@ -582,12 +621,16 @@ function renderHearDone(vm: ViewModel): string {
         )}px;padding:8px 10px;border-radius:2px;outline:none;width:${ts(vm, 160)}px;" />
       </div>
       <div>${vm.t('done.date')} ${vm.hearReportDate}</div>
-      <button data-action="printHearingReport" class="eg-btn-pdf" style="background:transparent;${
-        vm.isTablet ? 'border:1px solid var(--accent);color:var(--accent);' : ''
-      }padding:${ts(vm, 10)}px ${ts(vm, 24)}px;border-radius:2px;font-weight:700;letter-spacing:2px;font-size:${ts(
-    vm,
-    12
-  )}px;cursor:pointer;transition:border-color 0.15s ease, color 0.15s ease;">${vm.t('done.pdfButton')}</button>
+      ${
+        vm.isNative
+          ? renderSaveMenu(vm, ts(vm, 12))
+          : `<button data-action="printHearingReport" class="eg-btn-pdf" style="background:transparent;${
+              vm.isTablet ? 'border:1px solid var(--accent);color:var(--accent);' : ''
+            }padding:${ts(vm, 10)}px ${ts(vm, 24)}px;border-radius:2px;font-weight:700;letter-spacing:2px;font-size:${ts(
+              vm,
+              12
+            )}px;cursor:pointer;transition:border-color 0.15s ease, color 0.15s ease;">${vm.t('done.pdfButton')}</button>`
+      }
     </div>
     ${graphBlock}
     <div style="display:flex;justify-content:center;gap:${ts(vm, 24)}px;font-family:var(--font-mono);font-size:${ts(

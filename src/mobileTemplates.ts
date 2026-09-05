@@ -13,6 +13,7 @@ import {
   renderHearGraphBlock,
   renderLocaleSwitcher,
   renderRaisedBackButton,
+  renderSaveMenu,
 } from './templates';
 import type { ViewModel } from './viewModel';
 
@@ -252,9 +253,13 @@ export function renderMobileDone(vm: ViewModel): string {
           )}" data-bind="hearReportName" style="background:var(--panel);border:1px solid var(--line);color:var(--text);font-family:var(--font-mono);font-size:20px;padding:8px 12px;border-radius:2px;outline:none;width:200px;" />
         </div>
         <div>${vm.t('done.date')} ${vm.hearReportDate}</div>
-        <button data-action="printHearingReport" class="eg-btn-pdf" style="background:transparent;border:1px solid var(--accent);color:var(--accent);padding:10px 24px;border-radius:2px;font-weight:700;letter-spacing:2px;font-size:18px;cursor:pointer;transition:border-color 0.15s ease, color 0.15s ease;">${vm.t(
-          'done.pdfButton'
-        )}</button>
+        ${
+          vm.isNative
+            ? renderSaveMenu(vm, 18)
+            : `<button data-action="printHearingReport" class="eg-btn-pdf" style="background:transparent;border:1px solid var(--accent);color:var(--accent);padding:10px 24px;border-radius:2px;font-weight:700;letter-spacing:2px;font-size:18px;cursor:pointer;transition:border-color 0.15s ease, color 0.15s ease;">${vm.t(
+                'done.pdfButton'
+              )}</button>`
+        }
       </div>
       <div style="width:${MOBILE_GRAPH_W * MOBILE_GRAPH_SCALE}px;height:${MOBILE_GRAPH_H * MOBILE_GRAPH_SCALE}px;flex-shrink:0;overflow:visible;">
         <div style="width:${MOBILE_GRAPH_W}px;transform:scale(${MOBILE_GRAPH_SCALE});transform-origin:top left;">
