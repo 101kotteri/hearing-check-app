@@ -4,9 +4,9 @@
 // meant to read like a real audio instrument's fixed panel labels, not
 // app UI text — so none of that lives in this dictionary. Everything here is
 // actual instructional/explanatory copy, translated per locale.
-export type Locale = 'ja' | 'en' | 'zh' | 'de' | 'ko' | 'es';
+export type Locale = 'ja' | 'en' | 'zh' | 'de' | 'ko' | 'es' | 'fr' | 'pt';
 
-export const SUPPORTED_LOCALES: Locale[] = ['ja', 'en', 'zh', 'de', 'ko', 'es'];
+export const SUPPORTED_LOCALES: Locale[] = ['ja', 'en', 'zh', 'de', 'ko', 'es', 'fr', 'pt'];
 
 // Each language's own native name — used in the in-app language switcher's
 // dropdown so a viewer can recognize their own language even without
@@ -20,16 +20,21 @@ export const LANGUAGE_LABELS: Record<Locale, string> = {
   de: 'Deutsch',
   ko: '한국어',
   es: 'Español',
+  fr: 'Français',
+  pt: 'Português',
 };
 
 // English, not Japanese, is the fallback for a browser/OS language this app
 // doesn't otherwise recognize — Japanese stays available for anyone whose
-// language actually matches it, but an unmatched user (French/Italian/etc.,
-// deliberately left out of the initial 6 — see memory) should land on the
+// language actually matches it, but an unmatched user should land on the
 // most broadly-readable option for a professional-audio audience, not a
 // language they likely can't read at all.
 export const DEFAULT_LOCALE: Locale = 'en';
 
+// 'pt' covers Brazilian Portuguese specifically (per explicit direction —
+// Brazil's App Store market, not Portugal's) but matches any pt-* tag the
+// same way 'zh' doesn't distinguish simplified/traditional — one variant
+// per language, consistent with the rest of this list.
 function normalizeToSupportedLocale(tag: string): Locale | null {
   const lower = tag.toLowerCase();
   if (lower.startsWith('ja')) return 'ja';
@@ -37,6 +42,8 @@ function normalizeToSupportedLocale(tag: string): Locale | null {
   if (lower.startsWith('de')) return 'de';
   if (lower.startsWith('ko')) return 'ko';
   if (lower.startsWith('es')) return 'es';
+  if (lower.startsWith('fr')) return 'fr';
+  if (lower.startsWith('pt')) return 'pt';
   if (lower.startsWith('en')) return 'en';
   return null;
 }
@@ -355,6 +362,103 @@ const DICTIONARY: Record<Locale, Record<string, string>> = {
     'print.subtitle': 'Autocomprobación simplificada (valores relativos)',
     'print.disclaimer':
       'Esta es una comprobación simplificada basada en valores relativos. Considérela una guía del equilibrio izquierda/derecha y la respuesta en frecuencia de su dispositivo. Es un indicador simplificado, distinto de una prueba auditiva clínica.',
+  },
+  fr: {
+    'gate.passwordError': 'Mot de passe incorrect',
+    'nav.back': 'Retour',
+    'nav.stop': "Arrêt d'urgence",
+    'nav.heading': 'Test auditif',
+    'nav.resultTitle': 'Résultat',
+    'nav.partialWarning': "※Arrêté avant la fin — certaines fréquences n'ont pas été mesurées.",
+    'intro.title': 'Test auditif rapide',
+    'intro.bullet1': '・Mettez votre casque ou vos écouteurs.',
+    'intro.bullet2':
+      '・La mesure se fait automatiquement : oreille droite puis gauche, des graves vers les aigus.',
+    'intro.bullet3': '・Lorsque vous entendez le son, appuyez sur le bouton « {{btn}} ».',
+    'intro.bullet4': "・Si vous ne l'entendez pas, il n'y a rien à faire — cela passe automatiquement à la suite.",
+    'intro.bullet5': '・Dure environ 3 à 5 minutes.',
+    'intro.bullet6': '・En cas de malaise, vous pouvez arrêter à tout moment avec « {{stopBtn}} ».',
+    'intro.disclaimer':
+      "※Il s'agit d'un test relatif et simplifié qui dépend du réglage du volume de votre appareil. Il ne remplace pas un test auditif clinique.",
+    'intro.startButton': 'Commencer',
+    'intro.spaceKeyHint': '(touche Espace)',
+    'setup.title': "Sélectionnez votre configuration d'écoute",
+    'setup.deviceLabel': 'Appareil de lecture',
+    'setup.listeningLabel': 'Caractère sonore',
+    'setup.deviceHeadphone': 'Casque',
+    'setup.deviceEarphone': 'Écouteurs',
+    'setup.listeningReference': 'Qualité de référence\n(réponse plate)',
+    'setup.listeningType': 'Type grand public\n(graves et aigus accentués)',
+    'setup.confirmButton': 'OK (le son va être diffusé)',
+    'calibrate.title': 'Réglez le volume',
+    'calibrate.body':
+      'Une tonalité de référence de 1 kHz est diffusée en continu.<br/>Réglez le volume de votre casque/écouteurs à un niveau<br/>clairement audible sans effort — un niveau « juste comme il faut ».<br/>Ne modifiez plus le volume de l\'appareil jusqu\'à la fin du test.',
+    'calibrate.confirmButton': 'Démarrer le test à ce volume',
+    'measure.status': 'Test : {{ear}} / {{freq}}',
+    'measure.heardButton': "Appuyer dès que vous l'entendez",
+    'measure.hint': "Si vous ne l'entendez pas, il n'y a rien à faire.",
+    'ear.right': 'Oreille droite',
+    'ear.left': 'Oreille gauche',
+    'done.date': 'Date',
+    'done.namePlaceholder': 'facultatif',
+    'done.nameEmpty': '(non renseigné)',
+    'done.pdfButton': 'Enregistrer en PDF',
+    'done.saveButton': 'Enregistrer le résultat',
+    'done.saveAsImage': 'Enregistrer en image',
+    'done.disclaimer':
+      "Il s'agit d'un test simplifié basé sur des valeurs relatives. Considérez-le comme un repère pour l'équilibre gauche/droite et la réponse en fréquence sur votre appareil. C'est un indicateur simplifié, différent d'un test auditif clinique.",
+    'print.title': 'Résultat du test auditif',
+    'print.subtitle': 'Auto-test simplifié (valeurs relatives)',
+    'print.disclaimer':
+      "Il s'agit d'un test simplifié basé sur des valeurs relatives. Considérez-le comme un repère pour l'équilibre gauche/droite et la réponse en fréquence sur votre appareil. C'est un indicateur simplifié, différent d'un test auditif clinique.",
+  },
+  pt: {
+    'gate.passwordError': 'Senha incorreta',
+    'nav.back': 'Voltar',
+    'nav.stop': 'Parada de emergência',
+    'nav.heading': 'Teste auditivo',
+    'nav.resultTitle': 'Resultado',
+    'nav.partialWarning': '※Interrompido antes do fim — algumas frequências não foram medidas.',
+    'intro.title': 'Teste auditivo rápido',
+    'intro.bullet1': '・Coloque o fone de ouvido ou os fones intra-auriculares.',
+    'intro.bullet2': '・A medição é automática: ouvido direito e depois esquerdo, do grave ao agudo.',
+    'intro.bullet3': '・Quando ouvir o som, pressione o botão "{{btn}}".',
+    'intro.bullet4': '・Se não ouvir, não é preciso fazer nada — ele avança automaticamente.',
+    'intro.bullet5': '・Leva de 3 a 5 minutos, aproximadamente.',
+    'intro.bullet6': '・Se sentir algum mal-estar, você pode interromper a qualquer momento com "{{stopBtn}}".',
+    'intro.disclaimer':
+      '※Esta é uma verificação relativa e simplificada que depende do volume do seu dispositivo. Não substitui um exame auditivo clínico.',
+    'intro.startButton': 'Começar',
+    'intro.spaceKeyHint': '(tecla Espaço)',
+    'setup.title': 'Selecione seu ambiente de escuta',
+    'setup.deviceLabel': 'Dispositivo de reprodução',
+    'setup.listeningLabel': 'Característica sonora',
+    'setup.deviceHeadphone': 'Fone de ouvido',
+    'setup.deviceEarphone': 'Fone intra-auricular',
+    'setup.listeningReference': 'Qualidade de referência\n(resposta plana)',
+    'setup.listeningType': 'Tipo de consumo\n(graves e agudos realçados)',
+    'setup.confirmButton': 'OK (o som será reproduzido)',
+    'calibrate.title': 'Ajuste o volume',
+    'calibrate.body':
+      'Um tom de referência de 1 kHz está tocando continuamente.<br/>Ajuste o volume do fone para um nível<br/>claramente audível sem esforço — o nível "na medida certa".<br/>Depois de ajustar, não altere mais o volume do dispositivo até o fim do teste.',
+    'calibrate.confirmButton': 'Iniciar o teste com este volume',
+    'measure.status': 'Testando: {{ear}} / {{freq}}',
+    'measure.heardButton': 'Pressionar ao ouvir',
+    'measure.hint': 'Se não ouvir, não é preciso fazer nada.',
+    'ear.right': 'Ouvido direito',
+    'ear.left': 'Ouvido esquerdo',
+    'done.date': 'Data',
+    'done.namePlaceholder': 'opcional',
+    'done.nameEmpty': '(não informado)',
+    'done.pdfButton': 'Salvar como PDF',
+    'done.saveButton': 'Salvar resultado',
+    'done.saveAsImage': 'Salvar como imagem',
+    'done.disclaimer':
+      'Esta é uma verificação simplificada baseada em valores relativos. Use-a como referência para o equilíbrio esquerda/direita e a resposta de frequência no seu dispositivo. É um indicador simplificado, diferente de um exame auditivo clínico.',
+    'print.title': 'Resultado do teste auditivo',
+    'print.subtitle': 'Autoavaliação simplificada (valores relativos)',
+    'print.disclaimer':
+      'Esta é uma verificação simplificada baseada em valores relativos. Use-a como referência para o equilíbrio esquerda/direita e a resposta de frequência no seu dispositivo. É um indicador simplificado, diferente de um exame auditivo clínico.',
   },
 };
 
