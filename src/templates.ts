@@ -549,6 +549,17 @@ export function renderHearGraphBlock(vm: ViewModel): string {
     )
     .join('');
 
+  // Per explicit direction: rather than a separate row below the graph
+  // (which crowded an already text-dense area), the purchase buttons sit
+  // inside the plot box itself, just under the 0dB reference line — real
+  // hearing-check point data rarely lands there (thresholds cluster near or
+  // above 0dB, not below it), so this overlay isn't fighting plotted points
+  // for the same space. Renders nothing once fully unlocked (Plan Max).
+  const upsell = renderPlanUpsell(vm, 11);
+  const upsellOverlay = upsell
+    ? `<div style="position:absolute;left:50%;top:${vm.hearRefLineY + 16}px;transform:translateX(-50%);">${upsell}</div>`
+    : '';
+
   return `
   <div style="width:900px;">
     <div style="display:flex;">
@@ -563,6 +574,7 @@ export function renderHearGraphBlock(vm: ViewModel): string {
         </svg>
         ${rightPoints}
         ${leftPoints}
+        ${upsellOverlay}
       </div>
     </div>
     <div style="margin-left:40px;position:relative;height:14px;margin-top:6px;">${axisLabelsBottom}</div>
@@ -592,17 +604,16 @@ const TABLET_GRAPH_W = 900;
 const TABLET_GRAPH_H = 300;
 
 function renderHearDone(vm: ViewModel): string {
-  // The upsell row (see renderPlanUpsell) adds real height inside the same
-  // tightly-tuned vertical budget the tablet scale factors above were
-  // measured against (see TABLET_GRAPH_SCALE_Y_WIDE's own comment) — when it
-  // renders, the graph gives up a bit more height, the same trade-off
-  // TABLET_GRAPH_SCALE_Y_WIDE itself already makes for non-ja's taller
-  // disclaimer, verified the same way (scrollHeight vs clientHeight).
-  // renderHearDone only ever runs for PC or tablet (mobile has its own
-  // renderMobileDone) — PC's effectivePlan is always 'B' (see
-  // constants.ts), so this is effectively "tablet, not fully unlocked".
-  const upsellShown = vm.isTablet && vm.plan !== 'B';
-  const tabletGraphScaleY = (vm.locale === 'ja' ? TABLET_GRAPH_SCALE_Y : TABLET_GRAPH_SCALE_Y_WIDE) - (upsellShown ? 0.22 : 0);
+  // The purchase buttons live inside the graph itself now (see
+  // renderHearGraphBlock's upsellOverlay — absolutely positioned, so it adds
+  // no height to this outer flex column in any plan state), not a separate
+  // row below it. That means this is back to exactly its original pre-plan-
+  // feature value: a flat +0.1 growth was tried here on the theory that
+  // removing the row freed vertical budget to grow into, but it broke the
+  // fully-unlocked Plan Max case (no overlay shown at all, yet still
+  // overflowed) — confirming the original tuned size was already at this
+  // screen's real limit, not something the row's removal created slack in.
+  const tabletGraphScaleY = vm.locale === 'ja' ? TABLET_GRAPH_SCALE_Y : TABLET_GRAPH_SCALE_Y_WIDE;
   const graphBlock = vm.isTablet
     ? `<div style="width:${TABLET_GRAPH_W * TABLET_GRAPH_SCALE_X}px;height:${
         TABLET_GRAPH_H * tabletGraphScaleY
@@ -697,7 +708,6 @@ function renderHearDone(vm: ViewModel): string {
       }
     </div>
     ${graphBlock}
-    ${renderPlanUpsell(vm, ts(vm, 12))}
     <div style="display:flex;justify-content:center;gap:${ts(vm, 24)}px;font-family:var(--font-mono);font-size:${ts(
     vm,
     11

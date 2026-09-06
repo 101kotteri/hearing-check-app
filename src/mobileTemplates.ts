@@ -13,7 +13,6 @@ import {
   renderHearGraphBlock,
   renderLocaleSwitcher,
   renderLockedSaveIndicator,
-  renderPlanUpsell,
   renderRaisedBackButton,
   renderSaveMenu,
 } from './templates';
@@ -224,6 +223,13 @@ export function renderMobileMeasure(vm: ViewModel): string {
   </div>`;
 }
 
+// The purchase buttons live inside the graph itself now (see
+// renderHearGraphBlock's upsellOverlay — absolutely positioned, adds no
+// height to this screen's outer layout in any plan state). A flat growth
+// here (1.3 -> 1.4) was tried on the theory that removing the old below-
+// graph row freed budget to grow into, but it reopened clipping even for
+// the fully-unlocked Plan Max case (no overlay shown at all) — the original
+// 1.3 was already this screen's real limit, so it stays.
 const MOBILE_GRAPH_SCALE = 1.3;
 const MOBILE_GRAPH_W = 900;
 // Matches the graph block's actual markup height (280 + 6 margin-top + 14 axis-
@@ -270,7 +276,6 @@ export function renderMobileDone(vm: ViewModel): string {
           ${renderHearGraphBlock(vm)}
         </div>
       </div>
-      ${renderPlanUpsell(vm, 16)}
       <div style="display:flex;flex-shrink:0;justify-content:center;gap:28px;font-family:var(--font-mono);font-size:20px;color:var(--text-dim);margin-top:16px;margin-bottom:20px;">
         <div style="display:flex;align-items:center;gap:8px;"><span style="width:12px;height:12px;border-radius:50%;border:2px solid var(--bad);display:inline-block;"></span>${vm.t(
           'ear.right'
