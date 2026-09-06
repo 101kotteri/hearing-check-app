@@ -555,7 +555,7 @@ export function renderHearGraphBlock(vm: ViewModel): string {
   // hearing-check point data rarely lands there (thresholds cluster near or
   // above 0dB, not below it), so this overlay isn't fighting plotted points
   // for the same space. Renders nothing once fully unlocked (Plan Max).
-  const upsell = renderPlanUpsell(vm, 11);
+  const upsell = renderPlanUpsell(vm, 13);
   const upsellOverlay = upsell
     ? `<div style="position:absolute;left:50%;top:${vm.hearRefLineY + 16}px;transform:translateX(-50%);">${upsell}</div>`
     : '';
