@@ -156,29 +156,33 @@ export function renderPlanUpsell(vm: ViewModel, fontSize: number): string {
   // this row would otherwise add, so the already-tuned disclaimer/legend
   // spacing below it doesn't get pushed into overflow. Compact padding for
   // the same reason.
-  const smallFont = Math.round(fontSize * 0.85);
+  // Single font size for both the one-button (Plan A -> B upgrade) and
+  // two-button (free -> Standard/Max) cases, so neither looks smaller than
+  // the other — this is what the pair case needs to still fit both buttons
+  // on one line (see below); the single-button case has plenty of spare
+  // width regardless, so it just reuses the same value for consistency.
+  const upsellFont = Math.round(fontSize * 0.975);
   const btnStyle = (f: number) =>
     `font-family:var(--font-mono);font-size:${f}px;cursor:pointer;background:transparent;border:1px solid var(--accent);color:var(--accent);padding:${Math.round(
       f * 0.4
     )}px ${Math.round(f * 0.9)}px;border-radius:2px;white-space:nowrap;`;
   if (vm.plan === 'A') {
     return `<div data-action="mockPurchase" data-value="upgradeB" class="eg-menu-item" style="margin:-6px 0;${btnStyle(
-      smallFont
+      upsellFont
     )}">${vm.t('plan.upgradeToB')}</div>`;
   }
   // Two buttons, forced onto one line (nowrap) rather than left free to wrap
   // — a wrapped 2-line stack is tall enough to get clipped by the plot
   // box's own overflow:hidden, reported directly ("プランMaxの枠の下が切れ
-  // ている"). A smaller font than the single-button case keeps even the
-  // longest locale (German) fitting inside the 860px-wide plot box on one
-  // line instead.
-  const pairFont = Math.round(fontSize * 0.65 * 1.5);
+  // ている"). upsellFont (rather than something smaller) was verified to
+  // still fit both buttons on one line even for the longest locale (German)
+  // within the 860px-wide plot box.
   return `
-  <div style="display:flex;gap:${Math.round(pairFont * 0.6)}px;flex-wrap:nowrap;justify-content:center;margin:-6px 0;">
-    <div data-action="mockPurchase" data-value="A" class="eg-menu-item" style="${btnStyle(pairFont)}">${vm.t(
+  <div style="display:flex;gap:${Math.round(upsellFont * 0.6)}px;flex-wrap:nowrap;justify-content:center;margin:-6px 0;">
+    <div data-action="mockPurchase" data-value="A" class="eg-menu-item" style="${btnStyle(upsellFont)}">${vm.t(
     'plan.buyA'
   )}</div>
-    <div data-action="mockPurchase" data-value="B" class="eg-menu-item" style="${btnStyle(pairFont)}">${vm.t(
+    <div data-action="mockPurchase" data-value="B" class="eg-menu-item" style="${btnStyle(upsellFont)}">${vm.t(
     'plan.buyB'
   )}</div>
   </div>`;
