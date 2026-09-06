@@ -145,9 +145,10 @@ export function renderLockedSaveIndicator(vm: ViewModel, fontSize: number): stri
 }
 
 // Purchase buttons for the results screen — see constants.ts's Plan comment
-// for the tier structure. Not real payments yet (mockPurchase in app.ts just
-// sets vm.plan directly), but the UI/wording is real. Plan B has nothing
-// left to buy, so this renders nothing once fully unlocked.
+// for the tier structure and app.ts's purchasePlan/mockPurchase for what
+// happens on click (real StoreKit on native, a simulated instant grant on
+// web, which has no real store). Plan B has nothing left to buy, so this
+// renders nothing once fully unlocked.
 export function renderPlanUpsell(vm: ViewModel, fontSize: number): string {
   if (vm.plan === 'B') return '';
   // This row sits in a flex column whose `gap` was tuned before this row
@@ -162,14 +163,27 @@ export function renderPlanUpsell(vm: ViewModel, fontSize: number): string {
   // on one line (see below); the single-button case has plenty of spare
   // width regardless, so it just reuses the same value for consistency.
   const upsellFont = Math.round(fontSize * 0.975);
+  // Dimmed + inert (rather than removing data-action outright) while a
+  // purchase is in flight — app.ts's purchasePlan already no-ops a re-entrant
+  // call, this is just the visual half of that so a slow purchase sheet
+  // doesn't look clickable. The plot box has very little vertical slack left
+  // (see renderHearGraphBlock's upsellOverlay comment), so a failed purchase
+  // is surfaced by swapping the button LABEL itself rather than adding an
+  // error line that would risk clipping.
+  const busy = vm.purchaseBusy;
   const btnStyle = (f: number) =>
-    `font-family:var(--font-mono);font-size:${f}px;cursor:pointer;background:transparent;border:1px solid var(--accent);color:var(--accent);padding:${Math.round(
+    `font-family:var(--font-mono);font-size:${f}px;cursor:${
+      busy ? 'default' : 'pointer'
+    };background:transparent;border:1px solid var(--accent);color:var(--accent);padding:${Math.round(
       f * 0.4
-    )}px ${Math.round(f * 0.9)}px;border-radius:2px;white-space:nowrap;`;
+    )}px ${Math.round(f * 0.9)}px;border-radius:2px;white-space:nowrap;opacity:${busy ? 0.5 : 1};pointer-events:${
+      busy ? 'none' : 'auto'
+    };`;
+  const label = (key: string) => (busy ? vm.t('plan.processing') : vm.purchaseError ? vm.t('plan.purchaseFailed') : vm.t(key));
   if (vm.plan === 'A') {
     return `<div data-action="mockPurchase" data-value="upgradeB" class="eg-menu-item" style="margin:-6px 0;${btnStyle(
       upsellFont
-    )}">${vm.t('plan.upgradeToB')}</div>`;
+    )}">${label('plan.upgradeToB')}</div>`;
   }
   // Two buttons, forced onto one line (nowrap) rather than left free to wrap
   // — a wrapped 2-line stack is tall enough to get clipped by the plot
@@ -179,10 +193,10 @@ export function renderPlanUpsell(vm: ViewModel, fontSize: number): string {
   // within the 860px-wide plot box.
   return `
   <div style="display:flex;gap:${Math.round(upsellFont * 0.6)}px;flex-wrap:nowrap;justify-content:center;margin:-6px 0;">
-    <div data-action="mockPurchase" data-value="A" class="eg-menu-item" style="${btnStyle(upsellFont)}">${vm.t(
+    <div data-action="mockPurchase" data-value="A" class="eg-menu-item" style="${btnStyle(upsellFont)}">${label(
     'plan.buyA'
   )}</div>
-    <div data-action="mockPurchase" data-value="B" class="eg-menu-item" style="${btnStyle(upsellFont)}">${vm.t(
+    <div data-action="mockPurchase" data-value="B" class="eg-menu-item" style="${btnStyle(upsellFont)}">${label(
     'plan.buyB'
   )}</div>
   </div>`;
@@ -400,7 +414,26 @@ function renderHearSetup(vm: ViewModel): string {
   )}px;padding:${ts(vm, 14)}px ${ts(vm, 48)}px;cursor:pointer;border-radius:2px;margin-top:8px;">${vm.t(
     'setup.confirmButton'
   )}</button>
+    ${renderRestorePurchases(vm)}
   </div>`;
+}
+
+// Reachable from the setup screen (rather than crowding the results-screen
+// graph overlay, whose plot box has very little vertical slack left — see
+// renderHearGraphBlock's upsellOverlay) so a reinstall/new-device user can
+// re-sync their prior purchase before or after actually measuring anything.
+// Native only — there's no real store to restore from on the web build.
+function renderRestorePurchases(vm: ViewModel): string {
+  if (!vm.isNative) return '';
+  return `<div data-action="restorePurchases" class="eg-menu-item" style="margin-top:-${ts(
+    vm,
+    14
+  )}px;font-family:var(--font-mono);font-size:${ts(
+    vm,
+    11
+  )}px;color:var(--text-dim);text-decoration:underline;cursor:pointer;opacity:${
+    vm.purchaseBusy ? 0.5 : 0.8
+  };">${vm.purchaseError ? vm.t('plan.purchaseFailed') : vm.t('plan.restorePurchases')}</div>`;
 }
 
 function renderHearCalibrate(vm: ViewModel): string {

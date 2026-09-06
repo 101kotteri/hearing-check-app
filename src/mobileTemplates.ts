@@ -165,9 +165,20 @@ export function renderMobileSetup(vm: ViewModel): string {
       <button data-action="beginHearingCalibration" class="eg-btn eg-btn-glow" style="background:var(--accent);color:var(--bg);border:none;font-weight:700;letter-spacing:2px;font-size:22px;padding:16px 64px;cursor:pointer;border-radius:4px;">${vm.t(
         'setup.confirmButton'
       )}</button>
+      ${renderMobileRestorePurchases(vm)}
     </div>
     ${renderMobileBottomSpacer()}
   </div>`;
+}
+
+// Mobile counterpart of templates.ts's renderRestorePurchases — see that
+// function's comment for why this lives on the setup screen rather than the
+// results-screen graph overlay (which has very little vertical slack left).
+function renderMobileRestorePurchases(vm: ViewModel): string {
+  if (!vm.isNative) return '';
+  return `<div data-action="restorePurchases" class="eg-menu-item" style="margin-top:-14px;font-family:var(--font-mono);font-size:16px;color:var(--text-dim);text-decoration:underline;cursor:pointer;opacity:${
+    vm.purchaseBusy ? 0.5 : 0.8
+  };">${vm.purchaseError ? vm.t('plan.purchaseFailed') : vm.t('plan.restorePurchases')}</div>`;
 }
 
 export function renderMobileCalibrate(vm: ViewModel): string {

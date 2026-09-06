@@ -64,10 +64,22 @@ export interface AppState {
   saveMenuOpen: boolean;
   // Which pricing tier is unlocked (see constants.ts) — determines how many
   // frequencies actually get measured and whether PDF/image export is
-  // available. Real payment isn't wired up yet: settable via `?plan=a`/
-  // `?plan=b` at boot, or the mock purchase buttons on the results screen
-  // (see app.ts's mockPurchase action) — not persisted, resets on reload.
+  // available. On native, this is refreshed from StoreKit's real
+  // entitlements at boot and after every purchase/restore (see app.ts's
+  // refreshEntitlements/handlePurchase) — StoreKit itself is the source of
+  // truth, this is just a cache of it for rendering. On web (not native),
+  // there's no real store: settable via `?plan=a`/`?plan=b` at boot, or the
+  // mock purchase buttons on the results screen (see app.ts's mockPurchase
+  // action) — not persisted, resets on reload.
   plan: Plan;
+  // True while a StoreKit purchase/restore call is in flight — disables the
+  // purchase buttons so a slow network can't be double-tapped into two
+  // concurrent purchase sheets.
+  purchaseBusy: boolean;
+  // Set when the last purchase/restore attempt failed (not on a plain user
+  // cancellation, which isn't an error) — cleared on the next attempt. See
+  // gate.passwordError for the same inline-error-flag pattern.
+  purchaseError: boolean;
 }
 
 export function createInitialHearingState(): Pick<
@@ -114,6 +126,8 @@ export function createInitialState(
     localeMenuOpen: false,
     saveMenuOpen: false,
     plan,
+    purchaseBusy: false,
+    purchaseError: false,
     ...createInitialHearingState(),
   };
 }

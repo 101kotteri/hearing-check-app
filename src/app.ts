@@ -27,8 +27,12 @@ import {
   HEARING_REF_GAIN,
   HEARING_STEP_BIG,
   HEARING_STEP_SMALL,
+  STORE_PRODUCT_ID_A,
+  STORE_PRODUCT_ID_B,
+  STORE_PRODUCT_ID_UPGRADE_B,
   canExportReport,
   effectivePlan,
+  planFromEntitlements,
   testOrderForPlan,
 } from './constants';
 import type { Plan } from './constants';
@@ -62,6 +66,21 @@ interface SavePhotoPlugin {
   saveImage(options: { data: string }): Promise<void>;
 }
 const SavePhoto = registerPlugin<SavePhotoPlugin>('SavePhoto');
+
+// Local plugin (no npm package — see ios/App/App/StoreKitPurchasePlugin.swift
+// + project.pbxproj, same registration pattern as SavePhoto above) wrapping
+// StoreKit 2. `productIds` is always StoreKit's full current-entitlements
+// list, not just the one product acted on — planFromEntitlements() derives
+// the effective Plan from the whole set every time, so it's never out of
+// sync with what's actually owned. `cancelled` on purchase() distinguishes
+// "user backed out of the sheet" (not an error, no message shown) from an
+// actual failure (thrown/rejected).
+interface StoreKitPurchasePlugin {
+  getEntitlements(): Promise<{ productIds: string[] }>;
+  purchase(options: { productId: string }): Promise<{ productIds: string[]; cancelled: boolean }>;
+  restore(): Promise<{ productIds: string[] }>;
+}
+const StoreKitPurchase = registerPlugin<StoreKitPurchasePlugin>('StoreKitPurchase');
 // Dynamically imported inside shareHearingReportNative() instead of here —
 // jsPDF (plus its own bundled dependencies) adds real weight (400KB+) that
 // only the native app's save flow ever needs. A static import here would
@@ -186,6 +205,25 @@ export class App {
     window.addEventListener('orientationchange', this.fitToScreen);
 
     this.render();
+
+    // StoreKit (not a query param) is the real source of truth for `plan` on
+    // native — re-checked here at boot so a returning user's prior purchase
+    // is honored without needing `?plan=`. Web has no real store, so `plan`
+    // there stays whatever createInitialState set it to (query param or
+    // 'none') and this is skipped entirely.
+    if (this.state.isNative) void this.refreshEntitlements();
+  }
+
+  private async refreshEntitlements(): Promise<void> {
+    try {
+      const { productIds } = await StoreKitPurchase.getEntitlements();
+      this.setState({ plan: planFromEntitlements(productIds) });
+    } catch {
+      // No StoreKit configuration reachable (e.g. a plain web build that
+      // somehow reports isNative, or a transient StoreKit error at boot) —
+      // leave `plan` as createInitialState set it rather than surfacing an
+      // error for a call the user didn't initiate.
+    }
   }
 
   private setState(patch: Partial<AppState>): void {
@@ -440,12 +478,55 @@ export class App {
         this.saveReportAs(value as 'pdf' | 'image');
         break;
       case 'mockPurchase':
-        // No real payment yet (StoreKit isn't wired up) — this simulates an
-        // instant successful purchase so the locked/unlocked UI itself can
-        // be designed and reviewed now. 'upgradeB' is the Plan A -> B
-        // discounted upgrade (only reachable from Plan A in the UI).
-        this.setState({ plan: value === 'upgradeB' ? 'B' : (value as Plan) });
+        if (this.state.isNative) {
+          void this.purchasePlan(value as 'A' | 'B' | 'upgradeB');
+        } else {
+          // Web has no real store to buy from — this simulates an instant
+          // successful purchase so the locked/unlocked UI itself can still
+          // be designed/reviewed/previewed from a browser. 'upgradeB' is the
+          // Plan A -> B discounted upgrade (only reachable from Plan A in
+          // the UI).
+          this.setState({ plan: value === 'upgradeB' ? 'B' : (value as Plan) });
+        }
         break;
+      case 'restorePurchases':
+        if (this.state.isNative) void this.restorePurchases();
+        break;
+    }
+  }
+
+  private productIdFor(value: 'A' | 'B' | 'upgradeB'): string {
+    return value === 'A' ? STORE_PRODUCT_ID_A : value === 'B' ? STORE_PRODUCT_ID_B : STORE_PRODUCT_ID_UPGRADE_B;
+  }
+
+  private async purchasePlan(value: 'A' | 'B' | 'upgradeB'): Promise<void> {
+    if (this.state.purchaseBusy) return;
+    this.setState({ purchaseBusy: true, purchaseError: false });
+    try {
+      const { productIds, cancelled } = await StoreKitPurchase.purchase({ productId: this.productIdFor(value) });
+      this.setState({
+        plan: planFromEntitlements(productIds),
+        purchaseBusy: false,
+        purchaseError: false,
+      });
+      void cancelled; // Not an error either way — nothing further to show for it.
+    } catch {
+      this.setState({ purchaseBusy: false, purchaseError: true });
+    }
+  }
+
+  private async restorePurchases(): Promise<void> {
+    if (this.state.purchaseBusy) return;
+    this.setState({ purchaseBusy: true, purchaseError: false });
+    try {
+      const { productIds } = await StoreKitPurchase.restore();
+      this.setState({
+        plan: planFromEntitlements(productIds),
+        purchaseBusy: false,
+        purchaseError: false,
+      });
+    } catch {
+      this.setState({ purchaseBusy: false, purchaseError: true });
     }
   }
 

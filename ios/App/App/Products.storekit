@@ -1,0 +1,126 @@
+{
+  "identifier" : "5F2A9C10",
+  "nonRenewingSubscriptions" : [],
+  "products" : [
+    {
+      "displayPrice" : "300",
+      "familyShareable" : false,
+      "internalID" : "5F2A9C11",
+      "localizations" : [
+        {
+          "description" : "125Hz/500Hz/2kHz/8kHzを追加測定",
+          "displayName" : "Plan Standard",
+          "locale" : "ja"
+        },
+        {
+          "description" : "Adds 125Hz/500Hz/2kHz/8kHz to the hearing check",
+          "displayName" : "Plan Standard",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.hearingcheck.app.planA",
+      "referenceName" : "Plan Standard",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "400",
+      "familyShareable" : false,
+      "internalID" : "5F2A9C12",
+      "localizations" : [
+        {
+          "description" : "全9点測定＋PDF/画像保存",
+          "displayName" : "Plan Max",
+          "locale" : "ja"
+        },
+        {
+          "description" : "Full 9-point hearing check + PDF/image export",
+          "displayName" : "Plan Max",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.hearingcheck.app.planB",
+      "referenceName" : "Plan Max",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "100",
+      "familyShareable" : false,
+      "internalID" : "5F2A9C13",
+      "localizations" : [
+        {
+          "description" : "Plan Standard購入者向け：63Hz/10kHz＋PDF/画像保存を追加",
+          "displayName" : "Max Upgrade",
+          "locale" : "ja"
+        },
+        {
+          "description" : "For Plan Standard owners: adds 63Hz/10kHz + PDF/image export",
+          "displayName" : "Max Upgrade",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.hearingcheck.app.upgradeB",
+      "referenceName" : "Max Upgrade",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "0",
+    "_developerTeamID" : "0",
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 0,
+    "_locale" : "ja_JP",
+    "_storefront" : "JPN",
+    "_storeKitErrors" : [
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Load Products"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Purchase"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Verification"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Store Sync"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Subscription Status"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Transaction"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Manage Subscriptions Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Refund Request Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Offer Code Redeem Sheet"
+      }
+    ]
+  },
+  "subscriptionGroups" : [],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

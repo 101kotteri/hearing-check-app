@@ -27,5 +27,6 @@ class MainViewController: CAPBridgeViewController {
     // dependence on CAPBridgedPlugin's own auto-discovery actually firing.
     override func capacitorDidLoad() {
         bridge?.registerPluginInstance(SavePhotoPlugin())
+        bridge?.registerPluginInstance(StoreKitPurchasePlugin())
     }
 }

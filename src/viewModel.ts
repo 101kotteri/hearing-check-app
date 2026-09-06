@@ -59,6 +59,11 @@ export interface ViewModel {
   localeMenuOpen: boolean;
   saveMenuOpen: boolean;
   plan: Plan;
+  // True while a StoreKit purchase/restore call is in flight — renderPlanUpsell
+  // disables its buttons and shows a busy label while this is set.
+  purchaseBusy: boolean;
+  // Set after a failed (non-cancelled) purchase/restore attempt.
+  purchaseError: boolean;
   // Whether PDF/image export is unlocked (Plan B only) — templates check
   // this instead of comparing vm.plan themselves.
   hearCanExport: boolean;
@@ -212,6 +217,8 @@ export function computeViewModel(s: AppState): ViewModel {
     localeMenuOpen: s.localeMenuOpen,
     saveMenuOpen: s.saveMenuOpen,
     plan,
+    purchaseBusy: s.purchaseBusy,
+    purchaseError: s.purchaseError,
     hearCanExport: canExportReport(plan),
     t,
     isHearing: s.screen === 'hearing',

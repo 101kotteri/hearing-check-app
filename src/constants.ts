@@ -50,6 +50,30 @@ export function effectivePlan(state: { isMobile: boolean; isTablet: boolean; pla
   return state.isMobile || state.isTablet ? state.plan : 'B';
 }
 
+// StoreKit product identifiers — must match the products configured both in
+// ios/App/App/Products.storekit (local Simulator/Xcode testing) and, later,
+// in App Store Connect's real in-app purchase records. UPGRADE_B is the
+// discounted Plan A -> B delta purchase, only ever offered to existing Plan
+// A owners (see renderPlanUpsell).
+export const STORE_PRODUCT_ID_A = 'com.hearingcheck.app.planA';
+export const STORE_PRODUCT_ID_B = 'com.hearingcheck.app.planB';
+export const STORE_PRODUCT_ID_UPGRADE_B = 'com.hearingcheck.app.upgradeB';
+
+// Derives the effective plan from StoreKit's own list of owned (verified,
+// current-entitlement) product IDs — this is the source of truth on native,
+// checked at every launch via StoreKitPurchase.getEntitlements(), rather
+// than trusting any client-side flag to persist across reinstalls/devices.
+// Owning planB outright, or owning planA + the upgrade delta, both count as
+// full Plan B; owning only the upgrade (not normally reachable through the
+// UI, which only offers it to Plan A owners) is treated as no plan at all
+// rather than silently granting B for free.
+export function planFromEntitlements(ownedProductIds: string[]): Plan {
+  const owns = (id: string) => ownedProductIds.includes(id);
+  if (owns(STORE_PRODUCT_ID_B)) return 'B';
+  if (owns(STORE_PRODUCT_ID_A)) return owns(STORE_PRODUCT_ID_UPGRADE_B) ? 'B' : 'A';
+  return 'none';
+}
+
 export const HEARING_STEP_BIG = 10;
 export const HEARING_STEP_SMALL = 5;
 export const HEARING_FLOOR_DB = -60;
