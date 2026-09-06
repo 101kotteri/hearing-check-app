@@ -157,18 +157,30 @@ export function renderPlanUpsell(vm: ViewModel, fontSize: number): string {
   // spacing below it doesn't get pushed into overflow. Compact padding for
   // the same reason.
   const smallFont = Math.round(fontSize * 0.85);
-  const btnStyle = `font-family:var(--font-mono);font-size:${smallFont}px;cursor:pointer;background:transparent;border:1px solid var(--accent);color:var(--accent);padding:${Math.round(
-    smallFont * 0.4
-  )}px ${Math.round(smallFont * 0.9)}px;border-radius:2px;white-space:nowrap;`;
+  const btnStyle = (f: number) =>
+    `font-family:var(--font-mono);font-size:${f}px;cursor:pointer;background:transparent;border:1px solid var(--accent);color:var(--accent);padding:${Math.round(
+      f * 0.4
+    )}px ${Math.round(f * 0.9)}px;border-radius:2px;white-space:nowrap;`;
   if (vm.plan === 'A') {
-    return `<div data-action="mockPurchase" data-value="upgradeB" class="eg-menu-item" style="margin:-6px 0;${btnStyle}">${vm.t(
-      'plan.upgradeToB'
-    )}</div>`;
+    return `<div data-action="mockPurchase" data-value="upgradeB" class="eg-menu-item" style="margin:-6px 0;${btnStyle(
+      smallFont
+    )}">${vm.t('plan.upgradeToB')}</div>`;
   }
+  // Two buttons, forced onto one line (nowrap) rather than left free to wrap
+  // — a wrapped 2-line stack is tall enough to get clipped by the plot
+  // box's own overflow:hidden, reported directly ("プランMaxの枠の下が切れ
+  // ている"). A smaller font than the single-button case keeps even the
+  // longest locale (German) fitting inside the 860px-wide plot box on one
+  // line instead.
+  const pairFont = Math.round(fontSize * 0.65);
   return `
-  <div style="display:flex;gap:${Math.round(smallFont * 0.7)}px;flex-wrap:wrap;justify-content:center;margin:-6px 0;">
-    <div data-action="mockPurchase" data-value="A" class="eg-menu-item" style="${btnStyle}">${vm.t('plan.buyA')}</div>
-    <div data-action="mockPurchase" data-value="B" class="eg-menu-item" style="${btnStyle}">${vm.t('plan.buyB')}</div>
+  <div style="display:flex;gap:${Math.round(pairFont * 0.6)}px;flex-wrap:nowrap;justify-content:center;margin:-6px 0;">
+    <div data-action="mockPurchase" data-value="A" class="eg-menu-item" style="${btnStyle(pairFont)}">${vm.t(
+    'plan.buyA'
+  )}</div>
+    <div data-action="mockPurchase" data-value="B" class="eg-menu-item" style="${btnStyle(pairFont)}">${vm.t(
+    'plan.buyB'
+  )}</div>
   </div>`;
 }
 
