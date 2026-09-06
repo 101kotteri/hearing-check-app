@@ -2,6 +2,7 @@ import './style.css';
 import { Capacitor } from '@capacitor/core';
 import { App } from './app';
 import { detectLocale } from './i18n';
+import type { Plan } from './constants';
 
 const root = document.querySelector<HTMLDivElement>('#app');
 if (!root) throw new Error('#app root element not found');
@@ -45,4 +46,10 @@ const isMobile = forceMobile || (isPhoneUA && !isTablet);
 // pattern; otherwise resolved from the browser's language preferences.
 const locale = detectLocale();
 
-new App(root, isMobile, isTablet, locale, Capacitor.isNativePlatform());
+// `?plan=a`/`?plan=b` previews a pricing tier without needing a real
+// purchase — see constants.ts's Plan/testOrderForPlan and app.ts's
+// mockPurchase action for the (not-yet-real-payment) purchase flow itself.
+const forcedPlan = (params.get('plan') || '').toLowerCase();
+const plan: Plan = forcedPlan === 'a' ? 'A' : forcedPlan === 'b' ? 'B' : 'none';
+
+new App(root, isMobile, isTablet, locale, Capacitor.isNativePlatform(), plan);

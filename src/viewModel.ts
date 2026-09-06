@@ -3,8 +3,12 @@ import {
   HEARING_FLOOR_DB,
   HEARING_FREQS,
   HEARING_FREQ_OFFSET_DB,
-  HEARING_TEST_ORDER,
+  canExportReport,
+  effectivePlan,
+  testOrderForPlan,
+  unlockedFrequencies,
 } from './constants';
+import type { Plan } from './constants';
 import type { AppState, Ear, HearResults } from './types';
 import type { Locale } from './i18n';
 import { translate } from './i18n';
@@ -19,6 +23,7 @@ export interface GraphPoint {
 export interface GraphTick {
   x: number;
   label: string;
+  locked: boolean;
 }
 
 export interface DbTick {
@@ -53,6 +58,10 @@ export interface ViewModel {
   isNative: boolean;
   localeMenuOpen: boolean;
   saveMenuOpen: boolean;
+  plan: Plan;
+  // Whether PDF/image export is unlocked (Plan B only) — templates check
+  // this instead of comparing vm.plan themselves.
+  hearCanExport: boolean;
   // Bound convenience wrapper around i18n's translate(), pre-applied to this
   // render's locale — lets templates.ts/mobileTemplates.ts call vm.t(key)
   // without importing i18n or threading vm.locale through separately.
@@ -129,11 +138,14 @@ function buildHearGraphData(
   results: HearResults,
   listeningScale: number,
   axisMinFreq: number,
-  axisMaxFreq: number
+  axisMaxFreq: number,
+  plan: Plan
 ): HearGraphData {
+  const unlocked = unlockedFrequencies(plan);
   const graphTicks: GraphTick[] = HEARING_FREQS.map((f) => ({
     x: hearGraphX(f, axisMinFreq, axisMaxFreq),
     label: f >= 1000 ? f / 1000 + 'k' : String(f),
+    locked: !unlocked.includes(f),
   }));
   const rightPoints = buildHearPoints(results, 'right', listeningScale, axisMinFreq, axisMaxFreq);
   const leftPoints = buildHearPoints(results, 'left', listeningScale, axisMinFreq, axisMaxFreq);
@@ -148,6 +160,11 @@ function buildHearGraphData(
 
 export function computeViewModel(s: AppState): ViewModel {
   const t = (key: string, vars?: Record<string, string | number>) => translate(s.locale, key, vars);
+  // Pricing tiers apply only on mobile/tablet — see constants.ts's
+  // effectivePlan — so the plain desktop/PC chassis (internal company
+  // distribution) always computes as fully unlocked here, regardless of
+  // s.plan.
+  const plan = effectivePlan(s);
   const hearRefLineY = hearGraphY(0);
   const hearDbTickValues: number[] = [];
   for (let db = HEARING_CEILING_DB; db >= HEARING_FLOOR_DB; db -= 10) hearDbTickValues.push(db);
@@ -156,19 +173,20 @@ export function computeViewModel(s: AppState): ViewModel {
     label: (db > 0 ? '+' : '') + db,
   }));
   const listeningScale = s.hearListeningType === 'listening' ? 0.5 : 1;
-  const hearGraph = buildHearGraphData(s.hearResults, listeningScale, HEAR_AXIS_MIN_FREQ, HEAR_AXIS_MAX_FREQ);
+  const hearGraph = buildHearGraphData(s.hearResults, listeningScale, HEAR_AXIS_MIN_FREQ, HEAR_AXIS_MAX_FREQ, plan);
 
-  const hearCurrentFreq = HEARING_TEST_ORDER[s.hearFreqPos] || 0;
+  const activeTestOrder = testOrderForPlan(plan);
+  const hearCurrentFreq = activeTestOrder[s.hearFreqPos] || 0;
   const hearCurrentFreqLabel = hearCurrentFreq >= 1000 ? hearCurrentFreq / 1000 + 'kHz' : hearCurrentFreq + 'Hz';
   const hearMeasureStatus = t('measure.status', {
     ear: t(s.hearEar === 'right' ? 'ear.right' : 'ear.left'),
     freq: hearCurrentFreqLabel,
   });
   const hearEarIndex = s.hearEar === 'right' ? 0 : 1;
-  const hearProgressPct = ((hearEarIndex * HEARING_TEST_ORDER.length + s.hearFreqPos) / (HEARING_TEST_ORDER.length * 2)) * 100;
+  const hearProgressPct = ((hearEarIndex * activeTestOrder.length + s.hearFreqPos) / (activeTestOrder.length * 2)) * 100;
 
   const hearRecordedCount = Object.keys(s.hearResults.right).length + Object.keys(s.hearResults.left).length;
-  const hearIsPartial = hearRecordedCount > 0 && hearRecordedCount < HEARING_TEST_ORDER.length * 2;
+  const hearIsPartial = hearRecordedCount > 0 && hearRecordedCount < activeTestOrder.length * 2;
 
   const now = new Date();
   const hearReportDate =
@@ -193,6 +211,8 @@ export function computeViewModel(s: AppState): ViewModel {
     isNative: s.isNative,
     localeMenuOpen: s.localeMenuOpen,
     saveMenuOpen: s.saveMenuOpen,
+    plan,
+    hearCanExport: canExportReport(plan),
     t,
     isHearing: s.screen === 'hearing',
     isHearIntro: s.screen === 'hearing' && s.hearStep === 'intro',

@@ -25,6 +25,10 @@ const PLAY_ICON = `<svg width="26" height="26" viewBox="0 0 24 24"><path d="M3 1
 const PLAY_ICON_SMALL = `<svg width="30" height="30" viewBox="0 0 24 24"><path d="M3 10v4h4l5 5V5L7 10H3z" fill="var(--accent)"/></svg>`;
 const BACK_ICON = `<svg width="10" height="10" viewBox="0 0 12 12"><path d="M8 1 L3 6 L8 11" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>`;
 const NO_RESPONSE_ARROW = `<path d="M7 1 L7 11 M2 7 L7 12 L12 7" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+// Small padlock, shown under a graph frequency tick the current plan
+// hasn't unlocked (see constants.ts's unlockedFrequencies) — a plain inline
+// SVG rather than an emoji, matching this app's other hand-drawn icons.
+const LOCK_ICON = `<svg width="8" height="9" viewBox="0 0 8 9" fill="none"><path d="M1.8 3.6V2.6a2.2 2.2 0 0 1 4.4 0v1" stroke="currentColor" stroke-width="1.1"/><rect x="0.8" y="3.6" width="6.4" height="4.6" rx="0.9" fill="currentColor"/></svg>`;
 
 // iPad's bezel is 1.3x taller than PC's (see chassis.ts's renderTabletFrame)
 // but the SAME width — per explicit follow-up request ("文字が小さいので
@@ -124,6 +128,47 @@ export function renderSaveMenu(vm: ViewModel, fontSize: number): string {
     fontSize * 0.5
   )}px ${Math.round(fontSize * 0.8)}px;">${vm.t('done.saveButton')} ▾</div>
     ${menu}
+  </div>`;
+}
+
+// Locked stand-in for the save button/menu when vm.hearCanExport is false —
+// informational only (no purchase action of its own), since the actual
+// purchase buttons live in renderPlanUpsell below the graph. Keeping this
+// slot occupied (rather than empty) tells a free/Plan-A viewer the feature
+// exists at all, which an empty gap wouldn't.
+export function renderLockedSaveIndicator(vm: ViewModel, fontSize: number): string {
+  return `<div style="display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:${fontSize}px;color:var(--text-dim);opacity:0.5;padding:${Math.round(
+    fontSize * 0.5
+  )}px ${Math.round(fontSize * 0.8)}px;border:1px solid var(--line);border-radius:2px;white-space:nowrap;">${LOCK_ICON} ${vm.t(
+    'done.saveButton'
+  )}</div>`;
+}
+
+// Purchase buttons for the results screen — see constants.ts's Plan comment
+// for the tier structure. Not real payments yet (mockPurchase in app.ts just
+// sets vm.plan directly), but the UI/wording is real. Plan B has nothing
+// left to buy, so this renders nothing once fully unlocked.
+export function renderPlanUpsell(vm: ViewModel, fontSize: number): string {
+  if (vm.plan === 'B') return '';
+  // This row sits in a flex column whose `gap` was tuned before this row
+  // existed (see renderHearDone/renderMobileDone) — a negative margin here
+  // (rather than touching that shared gap) claws back most of the space
+  // this row would otherwise add, so the already-tuned disclaimer/legend
+  // spacing below it doesn't get pushed into overflow. Compact padding for
+  // the same reason.
+  const smallFont = Math.round(fontSize * 0.85);
+  const btnStyle = `font-family:var(--font-mono);font-size:${smallFont}px;cursor:pointer;background:transparent;border:1px solid var(--accent);color:var(--accent);padding:${Math.round(
+    smallFont * 0.4
+  )}px ${Math.round(smallFont * 0.9)}px;border-radius:2px;white-space:nowrap;`;
+  if (vm.plan === 'A') {
+    return `<div data-action="mockPurchase" data-value="upgradeB" class="eg-menu-item" style="margin:-6px 0;${btnStyle}">${vm.t(
+      'plan.upgradeToB'
+    )}</div>`;
+  }
+  return `
+  <div style="display:flex;gap:${Math.round(smallFont * 0.7)}px;flex-wrap:wrap;justify-content:center;margin:-6px 0;">
+    <div data-action="mockPurchase" data-value="A" class="eg-menu-item" style="${btnStyle}">${vm.t('plan.buyA')}</div>
+    <div data-action="mockPurchase" data-value="B" class="eg-menu-item" style="${btnStyle}">${vm.t('plan.buyB')}</div>
   </div>`;
 }
 
@@ -454,7 +499,12 @@ export function renderHearGraphBlock(vm: ViewModel): string {
     .map((t) => `<div style="position:absolute;top:${t.y}px;left:0;transform:translateY(-50%);">${t.label}</div>`)
     .join('');
   const gridVLines = vm.hearGraph.graphTicks
-    .map((t) => `<div style="position:absolute;left:${t.x}px;top:0;bottom:0;width:1px;background:var(--line);opacity:0.4;"></div>`)
+    .map(
+      (t) =>
+        `<div style="position:absolute;left:${t.x}px;top:0;bottom:0;width:1px;background:var(--line);opacity:${
+          t.locked ? 0.15 : 0.4
+        };"></div>`
+    )
     .join('');
   const gridHLines = vm.hearDbTicks
     .map((t) => `<div style="position:absolute;left:0;top:${t.y}px;width:100%;height:1px;background:var(--line);opacity:0.4;"></div>`)
@@ -493,7 +543,9 @@ export function renderHearGraphBlock(vm: ViewModel): string {
   const axisLabelsBottom = vm.hearGraph.graphTicks
     .map(
       (t) =>
-        `<div style="position:absolute;left:${t.x}px;transform:translateX(-50%);font-family:var(--font-mono);font-size:9px;color:var(--text-dim);white-space:nowrap;">${t.label}</div>`
+        `<div style="position:absolute;left:${t.x}px;transform:translateX(-50%);font-family:var(--font-mono);font-size:9px;color:var(--text-dim);white-space:nowrap;display:flex;flex-direction:column;align-items:center;gap:2px;${
+          t.locked ? 'opacity:0.4;' : ''
+        }">${t.locked ? LOCK_ICON : ''}${t.label}</div>`
     )
     .join('');
 
@@ -540,7 +592,17 @@ const TABLET_GRAPH_W = 900;
 const TABLET_GRAPH_H = 300;
 
 function renderHearDone(vm: ViewModel): string {
-  const tabletGraphScaleY = vm.locale === 'ja' ? TABLET_GRAPH_SCALE_Y : TABLET_GRAPH_SCALE_Y_WIDE;
+  // The upsell row (see renderPlanUpsell) adds real height inside the same
+  // tightly-tuned vertical budget the tablet scale factors above were
+  // measured against (see TABLET_GRAPH_SCALE_Y_WIDE's own comment) — when it
+  // renders, the graph gives up a bit more height, the same trade-off
+  // TABLET_GRAPH_SCALE_Y_WIDE itself already makes for non-ja's taller
+  // disclaimer, verified the same way (scrollHeight vs clientHeight).
+  // renderHearDone only ever runs for PC or tablet (mobile has its own
+  // renderMobileDone) — PC's effectivePlan is always 'B' (see
+  // constants.ts), so this is effectively "tablet, not fully unlocked".
+  const upsellShown = vm.isTablet && vm.plan !== 'B';
+  const tabletGraphScaleY = (vm.locale === 'ja' ? TABLET_GRAPH_SCALE_Y : TABLET_GRAPH_SCALE_Y_WIDE) - (upsellShown ? 0.22 : 0);
   const graphBlock = vm.isTablet
     ? `<div style="width:${TABLET_GRAPH_W * TABLET_GRAPH_SCALE_X}px;height:${
         TABLET_GRAPH_H * tabletGraphScaleY
@@ -622,7 +684,9 @@ function renderHearDone(vm: ViewModel): string {
       </div>
       <div>${vm.t('done.date')} ${vm.hearReportDate}</div>
       ${
-        vm.isNative
+        !vm.hearCanExport
+          ? renderLockedSaveIndicator(vm, ts(vm, 12))
+          : vm.isNative
           ? renderSaveMenu(vm, ts(vm, 12))
           : `<button data-action="printHearingReport" class="eg-btn-pdf" style="background:transparent;${
               vm.isTablet ? 'border:1px solid var(--accent);color:var(--accent);' : ''
@@ -633,6 +697,7 @@ function renderHearDone(vm: ViewModel): string {
       }
     </div>
     ${graphBlock}
+    ${renderPlanUpsell(vm, ts(vm, 12))}
     <div style="display:flex;justify-content:center;gap:${ts(vm, 24)}px;font-family:var(--font-mono);font-size:${ts(
     vm,
     11

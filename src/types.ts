@@ -1,4 +1,5 @@
 import type { Locale } from './i18n';
+import type { Plan } from './constants';
 
 export type Ear = 'right' | 'left';
 export type DeviceType = 'headphone' | 'earphone';
@@ -38,6 +39,11 @@ export interface AppState {
   // state purely so templates.ts's PC render functions (which only ever
   // receive AppState/ViewModel, never a device flag directly) can see it.
   isTablet: boolean;
+  // Same reasoning as isTablet — riding along in state so viewModel.ts's
+  // effectivePlan() can tell plain-desktop-PC apart from mobile/tablet
+  // without app.ts needing to pass a device flag around separately. Also
+  // constant for the session.
+  isMobile: boolean;
   // Resolved once at boot (see main.ts's detectLocale()) and carried in state
   // for the same reason isTablet is — templates.ts/mobileTemplates.ts only
   // ever receive AppState/ViewModel, never a device/locale flag directly.
@@ -56,6 +62,12 @@ export interface AppState {
   // Transient UI state for the native-only save dropdown (see
   // renderSaveMenu) — same lifecycle rules as localeMenuOpen above.
   saveMenuOpen: boolean;
+  // Which pricing tier is unlocked (see constants.ts) — determines how many
+  // frequencies actually get measured and whether PDF/image export is
+  // available. Real payment isn't wired up yet: settable via `?plan=a`/
+  // `?plan=b` at boot, or the mock purchase buttons on the results screen
+  // (see app.ts's mockPurchase action) — not persisted, resets on reload.
+  plan: Plan;
 }
 
 export function createInitialHearingState(): Pick<
@@ -87,7 +99,8 @@ export function createInitialState(
   isMobile: boolean,
   isTablet: boolean = false,
   locale: Locale = 'en',
-  isNative: boolean = false
+  isNative: boolean = false,
+  plan: Plan = 'none'
 ): AppState {
   return {
     // No login gate on tablet either — see app.ts's goToGate.
@@ -95,10 +108,12 @@ export function createInitialState(
     password: '',
     passwordError: false,
     isTablet,
+    isMobile,
     locale,
     isNative,
     localeMenuOpen: false,
     saveMenuOpen: false,
+    plan,
     ...createInitialHearingState(),
   };
 }

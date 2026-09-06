@@ -12,6 +12,8 @@ import {
   escapeHtml,
   renderHearGraphBlock,
   renderLocaleSwitcher,
+  renderLockedSaveIndicator,
+  renderPlanUpsell,
   renderRaisedBackButton,
   renderSaveMenu,
 } from './templates';
@@ -254,7 +256,9 @@ export function renderMobileDone(vm: ViewModel): string {
         </div>
         <div>${vm.t('done.date')} ${vm.hearReportDate}</div>
         ${
-          vm.isNative
+          !vm.hearCanExport
+            ? renderLockedSaveIndicator(vm, 18)
+            : vm.isNative
             ? renderSaveMenu(vm, 18)
             : `<button data-action="printHearingReport" class="eg-btn-pdf" style="background:transparent;border:1px solid var(--accent);color:var(--accent);padding:10px 24px;border-radius:2px;font-weight:700;letter-spacing:2px;font-size:18px;cursor:pointer;transition:border-color 0.15s ease, color 0.15s ease;">${vm.t(
                 'done.pdfButton'
@@ -266,6 +270,7 @@ export function renderMobileDone(vm: ViewModel): string {
           ${renderHearGraphBlock(vm)}
         </div>
       </div>
+      ${renderPlanUpsell(vm, 16)}
       <div style="display:flex;flex-shrink:0;justify-content:center;gap:28px;font-family:var(--font-mono);font-size:20px;color:var(--text-dim);margin-top:16px;margin-bottom:20px;">
         <div style="display:flex;align-items:center;gap:8px;"><span style="width:12px;height:12px;border-radius:50%;border:2px solid var(--bad);display:inline-block;"></span>${vm.t(
           'ear.right'

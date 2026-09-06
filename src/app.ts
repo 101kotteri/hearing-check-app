@@ -27,8 +27,11 @@ import {
   HEARING_REF_GAIN,
   HEARING_STEP_BIG,
   HEARING_STEP_SMALL,
-  HEARING_TEST_ORDER,
+  canExportReport,
+  effectivePlan,
+  testOrderForPlan,
 } from './constants';
+import type { Plan } from './constants';
 import {
   renderMobileBackButtonOverlay,
   renderMobileCalibrate,
@@ -132,7 +135,8 @@ export class App {
     isMobile: boolean,
     isTablet: boolean = false,
     locale: Locale = 'en',
-    isNative: boolean = false
+    isNative: boolean = false,
+    plan: Plan = 'none'
   ) {
     this.isMobile = isMobile;
     // Tablet deliberately does NOT set isMobile — it stays on the PC-based
@@ -144,7 +148,7 @@ export class App {
     // opening screen/animation with no password gate — see wantsFramedChassis,
     // mountRoot, and goToGate for where isTablet is checked alongside isMobile.
     this.isTablet = isTablet;
-    this.state = createInitialState(isMobile, isTablet, locale, isNative);
+    this.state = createInitialState(isMobile, isTablet, locale, isNative, plan);
     this.rootEl = root;
 
     // A body-level sibling of the chassis, not a descendant of it — the print
@@ -435,6 +439,13 @@ export class App {
       case 'saveReport':
         this.saveReportAs(value as 'pdf' | 'image');
         break;
+      case 'mockPurchase':
+        // No real payment yet (StoreKit isn't wired up) — this simulates an
+        // instant successful purchase so the locked/unlocked UI itself can
+        // be designed and reviewed now. 'upgradeB' is the Plan A -> B
+        // discounted upgrade (only reachable from Plan A in the UI).
+        this.setState({ plan: value === 'upgradeB' ? 'B' : (value as Plan) });
+        break;
     }
   }
 
@@ -699,7 +710,7 @@ export class App {
   }
 
   private currentHearingFreq(): number {
-    return HEARING_TEST_ORDER[this.state.hearFreqPos];
+    return testOrderForPlan(effectivePlan(this.state))[this.state.hearFreqPos];
   }
 
   private playHearingTrial(): void {
@@ -814,7 +825,7 @@ export class App {
     this.hearDirection = 'descend';
     this.hearAscendHits = [];
     this.hearTrialCount = 0;
-    if (nextPos < HEARING_TEST_ORDER.length) {
+    if (nextPos < testOrderForPlan(effectivePlan(this.state)).length) {
       this.hearLevel = 0;
       this.setState({ hearResults: results, hearFreqPos: nextPos });
       this.hearGapTimer = window.setTimeout(() => this.playHearingTrial(), 700);
@@ -887,6 +898,10 @@ export class App {
   // a bare WKWebView doesn't get a print dialog for free the way a full
   // browser does). Untouched: works today, PC/mobile/tablet all verified.
   private printHearingReport(): void {
+    // Gated behind Plan B per explicit direction — the button itself is
+    // replaced by an upgrade prompt when locked (see templates.ts), but
+    // guard here too in case this is ever reachable another way.
+    if (!canExportReport(effectivePlan(this.state))) return;
     // hearReportName updates skip a re-render (see handleInput) to keep the input's
     // caret position while typing, so the hidden .eg-print-report copy can be stale.
     // Focus is on this button, not the name field, so re-rendering here is safe.
@@ -902,6 +917,7 @@ export class App {
   // Generating and sharing only the one requested file keeps each destination
   // clean.
   private saveReportAs(mode: 'pdf' | 'image'): void {
+    if (!canExportReport(effectivePlan(this.state))) return;
     this.setState({ saveMenuOpen: false });
     this.shareHearingReportNative(mode).catch((err) => {
       console.error('shareHearingReportNative failed', err);
