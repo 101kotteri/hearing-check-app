@@ -172,7 +172,7 @@ export function renderPlanUpsell(vm: ViewModel, fontSize: number): string {
   // ている"). A smaller font than the single-button case keeps even the
   // longest locale (German) fitting inside the 860px-wide plot box on one
   // line instead.
-  const pairFont = Math.round(fontSize * 0.65);
+  const pairFont = Math.round(fontSize * 0.65 * 1.5);
   return `
   <div style="display:flex;gap:${Math.round(pairFont * 0.6)}px;flex-wrap:nowrap;justify-content:center;margin:-6px 0;">
     <div data-action="mockPurchase" data-value="A" class="eg-menu-item" style="${btnStyle(pairFont)}">${vm.t(
