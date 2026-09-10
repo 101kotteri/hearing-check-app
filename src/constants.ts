@@ -1,23 +1,25 @@
 // Ported verbatim from design/HearingCheck.dc.html — see memory file
 // hearing-check-standalone-app.md for the tuning history behind these numbers.
 
-export const HEARING_FREQS = [63, 125, 250, 500, 1000, 2000, 4000, 8000, 10000] as const;
-export const HEARING_TEST_ORDER = [1000, 2000, 4000, 8000, 10000, 500, 250, 125, 63] as const;
+export const HEARING_FREQS = [63, 125, 250, 500, 1000, 2000, 4000, 8000, 10000, 12500] as const;
+export const HEARING_TEST_ORDER = [1000, 2000, 4000, 8000, 10000, 12500, 500, 250, 125, 63] as const;
 
 // Pricing tiers, per explicit direction — designed from day one (not a
 // free-then-paywalled bait-and-switch): free covers a real but reduced
 // low/mid/high check; Plan A adds four more points; Plan B adds the
-// remaining two plus PDF/image export. "Plan B-A" is the discounted
-// upgrade path offered only to existing Plan A owners, covering exactly
-// what A doesn't already have (not full Plan B priced again). Actual
-// payment (StoreKit) isn't wired up yet — `plan` is currently just app
-// state, settable via `?plan=a`/`?plan=b` or the mock purchase buttons —
-// but the frequency gating and locked-state UI are real from this point on.
+// remaining three (63Hz, 10kHz, 12.5kHz) plus PDF/image export. "Plan B-A"
+// is the discounted upgrade path offered only to existing Plan A owners,
+// covering exactly what A doesn't already have (not full Plan B priced
+// again). Real payment is wired up via StoreKit on native (see app.ts's
+// purchasePlan/StoreKitPurchase) — web (no real store) still uses the
+// mock-purchase preview path.
 export type Plan = 'none' | 'A' | 'B';
 
 const PLAN_FREE_FREQS = [250, 1000, 4000];
 const PLAN_A_EXTRA_FREQS = [125, 500, 2000, 8000];
-const PLAN_B_EXTRA_FREQS = [63, 10000];
+// 12.5kHz added alongside 63Hz/10kHz as a Max-only point, per explicit
+// direction — extends the high-frequency end of the Max-tier check.
+const PLAN_B_EXTRA_FREQS = [63, 10000, 12500];
 
 export function unlockedFrequencies(plan: Plan): number[] {
   const freqs: number[] = [...PLAN_FREE_FREQS];
@@ -87,6 +89,22 @@ export const HEARING_MAX_RESPONSE_MS = 4000;
 export const HEARING_GAP_MIN_MS = 900;
 export const HEARING_GAP_MAX_MS = 1700;
 
+// ISO 226:2003 Tf (threshold-in-quiet, dB SPL) coefficients, taken relative
+// to 1000Hz and scaled to 70% — same derivation the rest of this table
+// already uses (see the memory log: user found the full ISO226 correction
+// overcorrected on real headphones and fixed 70% as the working scale).
+// Raw Tf values (verified against two independent ISO226 coefficient-table
+// implementations): 1000=2.4, 4000=-5.4, 8000=12.6, 10000=13.9, 12500=12.3.
+// Relative-to-1kHz raw deltas: 4000=-7.8, 8000=10.2, 12500=9.9 — note 12.5kHz
+// sits BELOW 10kHz in the real curve (a genuine dip, not a continued rise).
+// ×0.7 and rounded: 4000=-5.46→-5, 8000=7.14→7, 12500=6.93→7.
+//
+// 63/125/250/500/2000/10000 are intentionally left as originally tuned
+// (see history above) rather than snapped to this same table's values for
+// those frequencies, which differ by 1-3dB — those entries reflect the
+// user's own listening-test judgment on real headphones, not a pure
+// ISO226 lookup, and overwriting a heard/validated value with a literature
+// value the moment they differ would erase that judgment call.
 export const HEARING_FREQ_OFFSET_DB: Record<number, number> = {
   63: 22,
   125: 12,
@@ -94,9 +112,10 @@ export const HEARING_FREQ_OFFSET_DB: Record<number, number> = {
   500: 1,
   1000: 0,
   2000: -2,
-  4000: -6,
-  8000: 8,
+  4000: -5,
+  8000: 7,
   10000: 8,
+  12500: 7,
 };
 
 // Device-type output offset (earphone sits closer to the ear canal than headphones).

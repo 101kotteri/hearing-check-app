@@ -558,13 +558,24 @@ export function renderHearGraphBlock(vm: ViewModel): string {
   const gridHLines = vm.hearDbTicks
     .map((t) => `<div style="position:absolute;left:0;top:${t.y}px;width:100%;height:1px;background:var(--line);opacity:0.4;"></div>`)
     .join('');
+  // A no-response arrow renders 2px below its point, 16px tall — if the
+  // point itself sits at or past the floor/ceiling edge (left as-is, exactly
+  // where it belongs, per explicit direction that this position carries real
+  // meaning), the arrow would render entirely past the plot box's own
+  // overflow:hidden bottom edge and vanish. Only the ARROW's vertical anchor
+  // is clamped so its bottom (anchor+2+16) never exceeds the 280px-tall box
+  // — the point marker itself is untouched and still renders/clips exactly
+  // where its true value puts it.
+  const arrowAnchorY = (y: number) => Math.min(y, 262);
   const rightPoints = vm.hearGraph.rightPoints
     .map(
       (pt) => `
       <div style="position:absolute;left:${pt.x}px;top:${pt.y}px;width:11px;height:11px;border-radius:50%;border:2px solid var(--bad);background:var(--panel);transform:translate(-50%,-50%);"></div>
       ${
         pt.noResponse
-          ? `<svg width="14" height="16" viewBox="0 0 14 16" style="position:absolute;left:${pt.x}px;top:${pt.y}px;transform:translate(-50%,2px);pointer-events:none;">${NO_RESPONSE_ARROW.replace(
+          ? `<svg width="14" height="16" viewBox="0 0 14 16" style="position:absolute;left:${pt.x}px;top:${arrowAnchorY(
+              pt.y
+            )}px;transform:translate(-50%,2px);pointer-events:none;">${NO_RESPONSE_ARROW.replace(
               'stroke-width="2"',
               'stroke="var(--bad)" stroke-width="2"'
             )}</svg>`
@@ -581,7 +592,9 @@ export function renderHearGraphBlock(vm: ViewModel): string {
       </div>
       ${
         pt.noResponse
-          ? `<svg width="14" height="16" viewBox="0 0 14 16" style="position:absolute;left:${pt.x}px;top:${pt.y}px;transform:translate(-50%,2px);pointer-events:none;">${NO_RESPONSE_ARROW.replace(
+          ? `<svg width="14" height="16" viewBox="0 0 14 16" style="position:absolute;left:${pt.x}px;top:${arrowAnchorY(
+              pt.y
+            )}px;transform:translate(-50%,2px);pointer-events:none;">${NO_RESPONSE_ARROW.replace(
               'stroke-width="2"',
               'stroke="var(--ear-l)" stroke-width="2"'
             )}</svg>`

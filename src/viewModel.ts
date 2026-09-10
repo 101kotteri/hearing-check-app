@@ -95,16 +95,33 @@ export interface ViewModel {
 
 // Shared by both the on-screen results graph and the printed report, fixed to
 // this exact range independent of how many frequencies were actually measured.
+// 12.5kHz is both the highest frequency ever tested (see HEARING_FREQS) and
+// the axis's right edge, per explicit direction — no point plots past it, so
+// there's no reason to leave empty space beyond it.
 const HEAR_AXIS_MIN_FREQ = 63;
-const HEAR_AXIS_MAX_FREQ = 16000;
+const HEAR_AXIS_MAX_FREQ = 12500;
 const HEAR_GRAPH_W = 860;
 const HEAR_GRAPH_H = 280;
+
+// Plot markers are 11px squares (drawn as a circle or a 45°-rotated diamond,
+// see renderHearGraphBlock) centered on their exact coordinate — a diamond's
+// rotated corner reaches ~7.8px (11*sqrt(2)/2) from center, so a point sitting
+// exactly on the X axis's own extreme (63Hz or, now that the axis ends
+// there, 12.5kHz) would have half of it sliced off by the plot box's
+// overflow:hidden. Insetting X's mapped range by this padding — not just
+// marker positions — keeps gridlines/paths/labels aligned with where the
+// markers actually land. The Y axis (dB) deliberately does NOT get this
+// treatment, per explicit direction — a point sitting exactly at or past the
+// floor/ceiling carries real meaning (at/beyond the measurable range) that a
+// padded-inward position would visually blur.
+const HEAR_POINT_PAD_X = 8;
 
 function hearGraphX(freq: number, axisMinFreq: number, axisMaxFreq: number): number {
   const logMin = Math.log10(axisMinFreq);
   const logMax = Math.log10(axisMaxFreq);
   const span = logMax - logMin;
-  return span > 0 ? ((Math.log10(freq) - logMin) / span) * HEAR_GRAPH_W : HEAR_GRAPH_W / 2;
+  const usable = HEAR_GRAPH_W - HEAR_POINT_PAD_X * 2;
+  return span > 0 ? HEAR_POINT_PAD_X + ((Math.log10(freq) - logMin) / span) * usable : HEAR_GRAPH_W / 2;
 }
 
 function hearGraphY(db: number): number {
